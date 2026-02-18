@@ -1,0 +1,44 @@
+{
+  "name": "basketbuddy",
+  "description": "BasketBuddy - A collaborative grocery list app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/content": "3.10.0",
+    "@nuxt/eslint": "1.12.1",
+    "@nuxt/fonts": "0.12.1",
+    "@nuxt/hints": "1.0.0-alpha.5",
+    "@nuxt/icon": "2.1.1",
+    "@nuxt/image": "2.0.0",
+    "@nuxt/scripts": "0.13.2",
+    "@nuxt/test-utils": "3.22.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.89.0",
+    "@types/uuid": "^11.0.0",
+    "@unhead/vue": "^2.1.1",
+    "@vueuse/core": "^14.1.0",
+    "@vueuse/integrations": "^14.1.0",
+    "better-sqlite3": "^12.5.0",
+    "eslint": "^9.39.2",
+    "idb": "^8.0.3",
+    "localforage": "^1.10.0",
+    "nuxt": "^4.2.2",
+    "pinia": "^3.0.4",
+    "sortablejs": "^1.15.6",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/sortablejs": "^1.15.9",
+    "@vite-pwa/nuxt": "^1.1.0",
+    "vue-tsc": "^3.2.2"
+  }
+}
