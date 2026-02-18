@@ -4,9 +4,6 @@ export interface GroceryList {
   owner_id: string
   created_at: string
   updated_at: string
-  items?: GroceryItem[]
-  isOwner?: boolean
-  permissionLevel?: 'view' | 'edit' | 'owner'
 }
 
 export interface GroceryItem {
@@ -17,6 +14,7 @@ export interface GroceryItem {
   item_order: number
   category: string | null
   notes: string | null
+  image_url: string | null
   created_at: string
   updated_at: string
 }

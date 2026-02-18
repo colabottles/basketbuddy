@@ -132,8 +132,11 @@ const handleLogin = async () => {
   }
 }
 
-definePageMeta({
-  middleware: 'guest'
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) {
+    await router.push('/')
+  }
 })
 
 useHead({

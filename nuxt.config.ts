@@ -23,7 +23,7 @@ export default defineNuxtConfig({
       name: 'BasketBuddy',
       short_name: 'BasketBuddy',
       description: 'Collaborative grocery list app with real-time sharing',
-      theme_color: '#2563eb',
+      theme_color: '#9333ea',
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',

@@ -27,7 +27,7 @@ useHead({
   meta: [
     { name: 'description', content: 'Collaborative grocery list app with real-time sharing' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'theme-color', content: '#2563eb' }
+    { name: 'theme-color', content: '#9333ea' }
   ]
 })
 </script>

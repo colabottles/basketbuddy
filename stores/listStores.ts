@@ -205,6 +205,7 @@ export const useListStore = defineStore('lists', () => {
       item_order: maxOrder + 1,
       category: null,
       notes: null,
+      image_url: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -261,6 +262,7 @@ export const useListStore = defineStore('lists', () => {
       item_order: item.item_order,
       category: item.category,
       notes: item.notes,
+      image_url: item.image_url,
       created_at: item.created_at,
       updated_at: new Date().toISOString()
     }
@@ -378,7 +380,7 @@ export const useListStore = defineStore('lists', () => {
   }
 
   // Create category
-  const createCategory = async (listId: string, name: string, color: string = '#2563eb') => {
+  const createCategory = async (listId: string, name: string, color: string = '#9333ea') => {
     const maxOrder = categories.value.length > 0
       ? Math.max(...categories.value.map(cat => cat.item_order))
       : 0
@@ -513,6 +515,7 @@ export const useListStore = defineStore('lists', () => {
       item_order: item.item_order,
       category,
       notes: item.notes,
+      image_url: item.image_url,
       created_at: item.created_at,
       updated_at: new Date().toISOString()
     }
@@ -570,6 +573,7 @@ export const useListStore = defineStore('lists', () => {
       item_order: item.item_order,
       category: item.category,
       notes: item.notes,
+      image_url: item.image_url,
       created_at: item.created_at,
       updated_at: new Date().toISOString()
     }
@@ -627,6 +631,7 @@ export const useListStore = defineStore('lists', () => {
       item_order: item.item_order,
       category: item.category,
       notes,
+      image_url: item.image_url,
       created_at: item.created_at,
       updated_at: new Date().toISOString()
     }
@@ -664,6 +669,107 @@ export const useListStore = defineStore('lists', () => {
         retries: 0
       })
     }
+  }
+
+  // Update item image
+  const updateItemImage = async (itemId: string, imageFile: File | null) => {
+    const itemIndex = currentItems.value.findIndex((i: GroceryItem) => i.id === itemId)
+    if (itemIndex === -1) {
+      console.warn(`Item ${itemId} not found`)
+      return
+    }
+
+    const item = currentItems.value[itemIndex]!
+    let imageUrl: string | null = null
+
+    if (imageFile) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('User not authenticated')
+
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${user.id}/${itemId}-${Date.now()}.${fileExt}`
+
+        const { data, error: uploadError } = await supabase.storage
+          .from('item-images')
+          .upload(fileName, imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('item-images')
+          .getPublicUrl(fileName)
+
+        imageUrl = publicUrl
+
+        if (item.image_url) {
+          const oldPath = item.image_url.split('/item-images/')[1]
+          if (oldPath) {
+            await supabase.storage.from('item-images').remove([oldPath])
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        throw error
+      }
+    } else if (item.image_url) {
+      const oldPath = item.image_url.split('/item-images/')[1]
+      if (oldPath) {
+        await supabase.storage.from('item-images').remove([oldPath])
+      }
+    }
+
+    const updatedItem: GroceryItem = {
+      id: item.id,
+      list_id: item.list_id,
+      text: item.text,
+      checked: item.checked,
+      item_order: item.item_order,
+      category: item.category,
+      notes: item.notes,
+      image_url: imageUrl,
+      created_at: item.created_at,
+      updated_at: new Date().toISOString()
+    }
+
+    await saveListItem(updatedItem)
+    currentItems.value[itemIndex] = updatedItem
+
+    if (isOnline.value) {
+      try {
+        const { error } = await (supabase.from('list_items') as any)
+          .update({ image_url: imageUrl, updated_at: updatedItem.updated_at })
+          .eq('id', itemId)
+
+        if (error) throw error
+      } catch (error) {
+        console.error('Error updating item image online:', error)
+        await addToSyncQueue({
+          id: uuidv4(),
+          type: 'UPDATE',
+          table: 'list_items',
+          data: { id: itemId, image_url: imageUrl, updated_at: updatedItem.updated_at },
+          timestamp: Date.now(),
+          synced: false,
+          retries: 0
+        })
+      }
+    } else {
+      await addToSyncQueue({
+        id: uuidv4(),
+        type: 'UPDATE',
+        table: 'list_items',
+        data: { id: itemId, image_url: imageUrl, updated_at: updatedItem.updated_at },
+        timestamp: Date.now(),
+        synced: false,
+        retries: 0
+      })
+    }
+
+    return imageUrl
   }
 
   // Export functions
@@ -828,6 +934,7 @@ export const useListStore = defineStore('lists', () => {
     updateItemCategory,
     updateItemText,
     updateItemNotes,
+    updateItemImage,
     exportToJSON,
     exportToCSV,
     exportToText,

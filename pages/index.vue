@@ -11,8 +11,10 @@
             <button
               @click="handleLogout"
               class="button button-secondary"
+              :disabled="isLoggingOut"
               aria-label="Sign out of your account">
-              Sign Out
+              <span v-if="isLoggingOut">Signing out...</span>
+              <span v-else>Sign Out</span>
             </button>
           </div>
         </div>
@@ -28,11 +30,16 @@
               @click="showNewListDialog = true"
               class="button button-primary"
               aria-label="Create a new grocery list">
-              <span aria-hidden="true">+</span> New List
+              New List
             </button>
           </div>
 
-          <div v-if="!listStore.lists || listStore.lists.length === 0" class="empty-state">
+          <div v-if="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading your lists...</p>
+          </div>
+
+          <div v-else-if="!listStore.lists || listStore.lists.length === 0" class="empty-state">
             <p class="empty-text">No lists yet. Create your first grocery list!</p>
           </div>
 
@@ -134,10 +141,15 @@
       </div>
     </div>
   </div>
+  <div v-if="isLoggingOut" class="logout-overlay">
+    <div class="logout-spinner"></div>
+    <p class="logout-text">Signing out...</p>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useListStore } from '~/stores/listStores'
+import { clearAllData } from '~/utils/indexedDB'
 import type { GroceryList } from '~/types/models'
 
 definePageMeta({
@@ -148,17 +160,22 @@ const supabase = useSupabase()
 const router = useRouter()
 const listStore = useListStore()
 
+const isLoading = ref(true)
 const showNewListDialog = ref(false)
 const newListName = ref('')
 const newListInput = ref<HTMLInputElement | null>(null)
 const isCreating = ref(false)
 const listToDelete = ref<GroceryList | null>(null)
 const isDeleting = ref(false)
+const isLoggingOut = ref(false)
 
 onMounted(async () => {
   const { data: { user } } = await supabase.auth.getUser()
   console.log('Current user:', user)
+
+  isLoading.value = true
   await listStore.fetchLists?.()
+  isLoading.value = false
 })
 
 const closeNewListDialog = () => {
@@ -217,9 +234,33 @@ const handleDeleteList = async () => {
 }
 
 const handleLogout = async () => {
-  await supabase.auth.signOut()
-  await clearAllData()
-  await router.push('/login')
+  isLoggingOut.value = true
+
+  try {
+    // Clear all local data first
+    await clearAllData()
+
+    // Clear store state
+    listStore.lists = []
+    listStore.currentList = null
+    listStore.currentItems = []
+    listStore.categories = []
+
+    // Sign out from Supabase
+    await supabase.auth.signOut()
+
+    // Small delay to ensure everything is cleared
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    // Navigate using router instead of full reload
+    await router.replace('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // If there's an error, force reload as fallback
+    window.location.href = '/login'
+  } finally {
+    isLoggingOut.value = false
+  }
 }
 
 const formatDate = (dateString: string) => {
@@ -446,5 +487,68 @@ useHead({
   font-size: var(--font-size-base);
   color: var(--color-text);
   margin-bottom: var(--spacing-xs);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  gap: var(--spacing-lg);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.logout-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  z-index: 9999;
+}
+
+.logout-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.logout-text {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  margin: 0;
 }
 </style>

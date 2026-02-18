@@ -28,6 +28,14 @@
               aria-label="Share this list">
               Share
             </button>
+            <button
+              @click="handleLogout"
+              class="button button-secondary"
+              :disabled="isLoggingOut"
+              aria-label="Sign out of your account">
+              <span v-if="isLoggingOut">Signing out...</span>
+              <span v-else>Sign Out</span>
+            </button>
           </div>
         </div>
       </div>
@@ -65,7 +73,7 @@
               @click="showCategoryDialog = true"
               class="button button-small button-secondary"
               aria-label="Add new category">
-              <span aria-hidden="true">+</span> Add Category
+              Add Category
             </button>
           </div>
 
@@ -218,7 +226,37 @@
                         placeholder="Notes (optional)"
                         @keyup.enter="saveEdit(item.id)"
                         @keyup.esc="cancelEditing" />
+
+                      <!-- Image Upload -->
+                      <div class="image-upload-section">
+                        <input
+                          ref="imageInput"
+                          type="file"
+                          accept="image/*"
+                          @change="handleImageSelect"
+                          class="visually-hidden"
+                          :id="`image-input-${item.id}`" />
+
+                        <div v-if="editingImagePreview" class="image-preview">
+                          <img :src="editingImagePreview" :alt="`Preview for ${editingText}`" />
+                          <button
+                            type="button"
+                            @click="removeEditingImage"
+                            class="remove-image-btn"
+                            aria-label="Remove image">
+                            ×
+                          </button>
+                        </div>
+
+                        <label
+                          v-else
+                          :for="`image-input-${item.id}`"
+                          class="image-upload-label">
+                          <span aria-hidden="true">📷</span> Add Photo
+                        </label>
+                      </div>
                     </div>
+
                     <div class="edit-actions">
                       <button
                         @click="saveEdit(item.id)"
@@ -241,7 +279,7 @@
                       <span aria-hidden="true">✎</span>
                     </button>
                     <button
-                      @click="handleDeleteItem(item.id)"
+                      @click="confirmDeleteItem(item)"
                       class="button-icon button-danger"
                       :aria-label="`Delete ${item.text}`">
                       <span aria-hidden="true">×</span>
@@ -280,10 +318,13 @@
                         </span>
                       </div>
                       <span v-if="item.notes" class="item-notes">{{ item.notes }}</span>
+                      <div v-if="item.image_url" class="item-image">
+                        <img :src="item.image_url" :alt="item.text" />
+                      </div>
                     </div>
                   </div>
                   <button
-                    @click="handleDeleteItem(item.id)"
+                    @click="confirmDeleteItem(item)"
                     class="button-icon button-danger"
                     :aria-label="`Delete ${item.text}`">
                     <span aria-hidden="true">×</span>
@@ -408,6 +449,37 @@
       </div>
     </div>
 
+    <!-- Delete Item Confirmation Dialog -->
+    <div
+      v-if="itemToDelete"
+      class="dialog-overlay"
+      @click="cancelDeleteItem"
+      role="alertdialog"
+      aria-labelledby="delete-item-title"
+      aria-describedby="delete-item-description"
+      aria-modal="true">
+      <div class="dialog" @click.stop>
+        <h2 id="delete-item-title" class="dialog-title">Delete Item?</h2>
+        <p id="delete-item-description" class="dialog-description">
+          Are you sure you want to delete "{{ itemToDelete.text }}"? This action cannot be undone.
+        </p>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            @click="cancelDeleteItem"
+            class="button button-secondary">
+            Cancel
+          </button>
+          <button
+            @click="handleDeleteItem"
+            class="button button-danger"
+            :disabled="isDeletingItem">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Share Dialog -->
     <div
       v-if="showShareDialog"
@@ -463,6 +535,10 @@
       aria-atomic="true">
       <p class="notification-text">{{ updateMessage }}</p>
     </div>
+    <div v-if="isLoggingOut" class="logout-overlay">
+      <div class="logout-spinner"></div>
+      <p class="logout-text">Signing out...</p>
+    </div>
   </div>
 </template>
 
@@ -471,18 +547,18 @@ import { useListStore } from '~/stores/listStores'
 import { useRealtimeSubscription } from '~/composables/useRealtimeSubscription'
 import Sortable from 'sortablejs'
 import type { Category, GroceryItem } from '~/types/models'
+import { clearAllData } from '~/utils/indexedDB'
 
 definePageMeta({
   middleware: 'auth'
 })
 
-// Add this near the top of the script section, after the refs
 const colorPalette = [
+  { name: 'Purple', value: '#9333ea', contrast: 'white' },
   { name: 'Blue', value: '#2563eb', contrast: 'white' },
   { name: 'Green', value: '#059669', contrast: 'white' },
   { name: 'Red', value: '#dc2626', contrast: 'white' },
   { name: 'Orange', value: '#ea580c', contrast: 'white' },
-  { name: 'Purple', value: '#9333ea', contrast: 'white' },
   { name: 'Pink', value: '#db2777', contrast: 'white' },
   { name: 'Indigo', value: '#4f46e5', contrast: 'white' },
   { name: 'Teal', value: '#0d9488', contrast: 'white' },
@@ -500,6 +576,7 @@ const route = useRoute()
 const router = useRouter()
 const listStore = useListStore()
 const { subscribeToList, unsubscribeFromList } = useRealtimeSubscription()
+const supabase = useSupabase()
 
 const listId = computed(() => route.params.id as string)
 const newItemText = ref('')
@@ -514,7 +591,7 @@ const updateMessage = ref('')
 const showExportMenu = ref(false)
 const showCategoryDialog = ref(false)
 const newCategoryName = ref('')
-const newCategoryColor = ref('#2563eb')
+const newCategoryColor = ref('#9333ea')
 const categoryNameInput = ref<HTMLInputElement | null>(null)
 const isCreatingCategory = ref(false)
 const categoryToDelete = ref<Category | null>(null)
@@ -525,6 +602,11 @@ const draggingItemId = ref<string | null>(null)
 const editingItemId = ref<string | null>(null)
 const editingText = ref('')
 const editingNotes = ref('')
+const itemToDelete = ref<GroceryItem | null>(null)
+const isDeletingItem = ref(false)
+const editingImage = ref<File | null>(null)
+const editingImagePreview = ref<string | null>(null)
+const imageInput = ref<HTMLInputElement | null>(null)
 
 let sortableInstance: Sortable | null = null
 
@@ -728,12 +810,52 @@ const startEditingItem = (item: GroceryItem) => {
   editingItemId.value = item.id
   editingText.value = item.text
   editingNotes.value = item.notes || ''
+  editingImage.value = null
+  editingImagePreview.value = item.image_url || null
+}
+
+const handleImageSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (file) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    editingImage.value = file
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      editingImagePreview.value = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeEditingImage = () => {
+  editingImage.value = null
+  editingImagePreview.value = null
+  if (imageInput.value) {
+    imageInput.value.value = ''
+  }
 }
 
 const cancelEditing = () => {
   editingItemId.value = null
   editingText.value = ''
   editingNotes.value = ''
+  editingImage.value = null
+  editingImagePreview.value = null
 }
 
 const saveEdit = async (itemId: string) => {
@@ -745,6 +867,18 @@ const saveEdit = async (itemId: string) => {
   try {
     await listStore.updateItemText?.(itemId, editingText.value.trim())
     await listStore.updateItemNotes?.(itemId, editingNotes.value.trim() || null)
+
+    // Handle image upload
+    if (editingImage.value) {
+      await listStore.updateItemImage?.(itemId, editingImage.value)
+    } else if (editingImagePreview.value === null) {
+      // Image was removed
+      const item = listStore.currentItems?.find((i: GroceryItem) => i.id === itemId)
+      if (item?.image_url) {
+        await listStore.updateItemImage?.(itemId, null)
+      }
+    }
+
     cancelEditing()
   } catch (error) {
     console.error('Error saving edit:', error)
@@ -752,12 +886,26 @@ const saveEdit = async (itemId: string) => {
   }
 }
 
-const handleDeleteItem = async (itemId: string) => {
+const confirmDeleteItem = (item: GroceryItem) => {
+  itemToDelete.value = item
+}
+
+const cancelDeleteItem = () => {
+  itemToDelete.value = null
+}
+
+const handleDeleteItem = async () => {
+  if (!itemToDelete.value || isDeletingItem.value) return
+
+  isDeletingItem.value = true
   try {
-    await listStore.deleteItem?.(itemId)
+    await listStore.deleteItem?.(itemToDelete.value.id)
+    itemToDelete.value = null
   } catch (error) {
     console.error('Error deleting item:', error)
     alert('Failed to delete item. Please try again.')
+  } finally {
+    isDeletingItem.value = false
   }
 }
 
@@ -766,7 +914,7 @@ const handleClearCompleted = async () => {
 
   if (completed.length === 0) return
 
-  const confirmed = confirm(`Remove ${completed.length} completed items?`)
+  const confirmed = confirm(`Delete ${completed.length} completed item${completed.length === 1 ? '' : 's'}? This action cannot be undone.`)
   if (!confirmed) return
 
   try {
@@ -915,6 +1063,32 @@ const handleExport = (format: 'json' | 'csv' | 'text') => {
   showNotification(`Exported as ${extension.toUpperCase()}`)
 }
 
+const isLoggingOut = ref(false)
+
+const handleLogout = async () => {
+  isLoggingOut.value = true
+
+  try {
+    await clearAllData()
+
+    listStore.lists = []
+    listStore.currentList = null
+    listStore.currentItems = []
+    listStore.categories = []
+
+    await supabase.auth.signOut()
+
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    await router.replace('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    window.location.href = '/login'
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+
 useHead({
   title: computed(() => `${listStore.currentList?.name || 'List'} - BasketBuddy`)
 })
@@ -945,7 +1119,7 @@ useHead({
 .button-icon-only {
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs);
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
@@ -956,6 +1130,21 @@ useHead({
 
 .button-icon-only:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.button-danger:hover {
+  background-color: #b91c1c;
+  /* Darker red on hover */
+}
+
+.button-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .app-title {
@@ -1363,6 +1552,85 @@ useHead({
   padding: var(--spacing-xs);
 }
 
+.image-upload-section {
+  margin-top: var(--spacing-sm);
+}
+
+.image-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.image-upload-label:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-background);
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 200px;
+}
+
+.image-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-border);
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-danger);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.remove-image-btn:hover {
+  background-color: #b91c1c;
+}
+
+.item-image {
+  margin-top: var(--spacing-sm);
+  max-width: 200px;
+}
+
+.item-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.item-image img:hover {
+  transform: scale(1.02);
+}
+
 .edit-fields {
   flex: 1;
   display: flex;
@@ -1546,6 +1814,15 @@ useHead({
   gap: var(--spacing-md);
 }
 
+.dialog-actions .button-danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.dialog-actions .button-danger:hover {
+  background-color: #b91c1c;
+}
+
 .notification {
   position: fixed;
   bottom: var(--spacing-lg);
@@ -1557,6 +1834,39 @@ useHead({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 2000;
   animation: slideIn 0.3s ease-out;
+}
+
+.logout-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  z-index: 9999;
+}
+
+.logout-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.logout-text {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  margin: 0;
 }
 
 @keyframes slideIn {
