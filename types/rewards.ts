@@ -56,16 +56,16 @@ export const POPULAR_RETAILERS: PopularRetailer[] = [
     loginUrl: 'https://www.samsclub.com/login'
   },
   {
-    name: 'CVS',
-    logo: '💊',
-    type: 'pharmacy',
-    loginUrl: 'https://www.cvs.com/account/login'
+    name: "Fry's",
+    logo: '🛍️',
+    type: 'grocery',
+    loginUrl: 'https://www.frysfood.com/signin'
   },
   {
-    name: 'Walgreens',
-    logo: '⚕️',
-    type: 'pharmacy',
-    loginUrl: 'https://www.walgreens.com/login.jsp'
+    name: 'Sprouts',
+    logo: '🌱',
+    type: 'grocery',
+    loginUrl: 'https://shop.sprouts.com/login'
   },
   {
     name: 'Whole Foods',

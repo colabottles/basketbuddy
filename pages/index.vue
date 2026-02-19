@@ -163,10 +163,27 @@
         </div>
       </div>
     </div>
-  </div>
-  <div v-if="isLoggingOut" class="logout-overlay">
-    <div class="logout-spinner"></div>
-    <p class="logout-text">Signing out...</p>
+    <div v-if="isLoggingOut" class="logout-overlay">
+      <div class="logout-spinner"></div>
+      <p class="logout-text">Signing out...</p>
+    </div>
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            © {{ new Date().getFullYear() }} BasketBuddy. Made with <span class="heart"
+              aria-label="love">❤️</span> by <a href="https://toddl.dev" target="_blank"
+              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.
+          </p>
+          <p class="footer-text">
+            Built with accessibility ♿ in mind. <a href="https://github.com/colabottles/basketbuddy"
+              target="_blank" rel="noopener noreferrer" class="footer-link">Please support on GitHub</a> to
+            keep this app free.
+          </p>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -655,5 +672,77 @@ useHead({
   font-size: var(--font-size-lg);
   color: var(--color-text);
   margin: 0;
+}
+
+.app-footer {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-xl) 0;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+}
+
+.footer-text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.heart {
+  color: #dc2626;
+  display: inline-block;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  10% {
+    transform: scale(1.1);
+  }
+
+  20% {
+    transform: scale(1);
+  }
+}
+
+.footer-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.footer-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  .footer-content {
+    gap: var(--spacing-md);
+  }
+
+  .footer-text {
+    font-size: var(--font-size-sm);
+  }
 }
 </style>
