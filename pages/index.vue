@@ -5,9 +5,12 @@
         <div class="header-content">
           <h1 class="app-title">BasketBuddy</h1>
           <div class="header-actions">
-            <span v-if="!listStore.isOnline" class="offline-badge" role="status" aria-live="polite">
-              Offline
-            </span>
+            <button
+              @click="router.push('/rewards')"
+              class="button button-secondary"
+              aria-label="Manage rewards cards">
+              Rewards
+            </button>
             <button
               @click="handleLogout"
               class="button button-secondary"
@@ -41,6 +44,26 @@
 
           <div v-else-if="!listStore.lists || listStore.lists.length === 0" class="empty-state">
             <p class="empty-text">No lists yet. Create your first grocery list!</p>
+          </div>
+
+          <!-- Pending Invitations -->
+          <div v-if="pendingInvitations.length > 0" class="invitations-section">
+            <h2 class="section-subtitle">Pending Invitations</h2>
+            <ul class="invitations-list">
+              <li v-for="invite in pendingInvitations" :key="invite.id" class="invitation-card">
+                <div class="invitation-info">
+                  <h3 class="invitation-title">{{ invite.lists?.name || 'Shared List' }}</h3>
+                  <p class="invitation-meta">
+                    Shared with {{ invite.permission_level }} access
+                  </p>
+                </div>
+                <button
+                  @click="acceptInvitation(invite.list_id, invite.lists?.name)"
+                  class="button button-primary button-small">
+                  Accept
+                </button>
+              </li>
+            </ul>
           </div>
 
           <ul v-else class="lists-grid" role="list">
@@ -148,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { useListStore } from '~/stores/listStores'
+import { useListStore } from '~/stores/listStore'
 import { clearAllData } from '~/utils/indexedDB'
 import type { GroceryList } from '~/types/models'
 
@@ -230,6 +253,37 @@ const handleDeleteList = async () => {
     alert('Failed to delete list. Please try again.')
   } finally {
     isDeleting.value = false
+  }
+}
+
+const pendingInvitations = ref<any[]>([])
+
+onMounted(async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('Current user:', user)
+
+  isLoading.value = true
+  await listStore.fetchLists?.()
+
+  // Load pending invitations
+  const invites = await listStore.getPendingInvitations?.()
+  pendingInvitations.value = invites || []
+
+  isLoading.value = false
+})
+
+const acceptInvitation = async (listId: string, listName: string) => {
+  try {
+    await listStore.acceptShareInvitation?.(listId)
+    await listStore.fetchLists?.()
+
+    const invites = await listStore.getPendingInvitations?.()
+    pendingInvitations.value = invites || []
+
+    alert(`You now have access to "${listName}"`)
+  } catch (error) {
+    console.error('Error accepting invitation:', error)
+    alert('Failed to accept invitation. Please try again.')
   }
 }
 
@@ -475,6 +529,57 @@ useHead({
   justify-content: flex-end;
   gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
+}
+
+.invitations-section {
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md);
+  background-color: #fef3c7;
+  border-radius: 0.5rem;
+  border: 2px solid #fbbf24;
+}
+
+.section-subtitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text);
+}
+
+.invitations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.invitation-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: white;
+  border-radius: 0.375rem;
+  gap: var(--spacing-md);
+}
+
+.invitation-info {
+  flex: 1;
+}
+
+.invitation-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-text);
+}
+
+.invitation-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .form-group {

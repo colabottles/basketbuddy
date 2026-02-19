@@ -772,84 +772,6 @@ export const useListStore = defineStore('lists', () => {
     return imageUrl
   }
 
-  // Export functions
-  const exportToJSON = () => {
-    return {
-      listName: currentList.value?.name || 'BasketBuddy List',
-      exportDate: new Date().toISOString(),
-      items: currentItems.value.map(item => ({
-        text: item.text,
-        checked: item.checked,
-        category: item.category
-      })),
-      categories: categories.value.map(cat => ({
-        name: cat.name,
-        color: cat.color
-      }))
-    }
-  }
-
-  const exportToCSV = (): string => {
-    const headers = ['Item', 'Checked', 'Category']
-    const rows = currentItems.value.map(item => [
-      `"${item.text.replace(/"/g, '""')}"`,
-      item.checked ? 'Yes' : 'No',
-      item.category ? `"${item.category.replace(/"/g, '""')}"` : ''
-    ])
-
-    return [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n')
-  }
-
-  const exportToText = (): string => {
-    const unchecked = currentItems.value.filter(i => !i.checked)
-    const checked = currentItems.value.filter(i => i.checked)
-
-    let text = `${currentList.value?.name || 'BasketBuddy List'}\n`
-    text += `Exported: ${new Date().toLocaleDateString()}\n\n`
-
-    if (categories.value.length > 0) {
-      categories.value.forEach(cat => {
-        const items = unchecked.filter(i => i.category === cat.name)
-        if (items.length > 0) {
-          text += `${cat.name}:\n`
-          items.forEach(item => {
-            text += `  ☐ ${item.text}\n`
-          })
-          text += '\n'
-        }
-      })
-
-      const uncategorized = unchecked.filter(i => !i.category)
-      if (uncategorized.length > 0) {
-        text += 'Other:\n'
-        uncategorized.forEach(item => {
-          text += `  ☐ ${item.text}\n`
-        })
-        text += '\n'
-      }
-    } else {
-      if (unchecked.length > 0) {
-        text += 'To Buy:\n'
-        unchecked.forEach(item => {
-          text += `  ☐ ${item.text}\n`
-        })
-        text += '\n'
-      }
-    }
-
-    if (checked.length > 0) {
-      text += 'Completed:\n'
-      checked.forEach(item => {
-        text += `  ☑ ${item.text}\n`
-      })
-    }
-
-    return text
-  }
-
   // Sync pending operations
   const syncPendingOperations = async () => {
     if (!isOnline.value || isSyncing.value) return
@@ -911,6 +833,134 @@ export const useListStore = defineStore('lists', () => {
     }
   })
 
+  // Share list with user by email
+  const shareList = async (listId: string, email: string, permissionLevel: 'view' | 'edit' = 'edit') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not authenticated')
+
+      // Check if user is list owner
+      const list = lists.value.find(l => l.id === listId)
+      if (!list || list.owner_id !== user.id) {
+        throw new Error('Only list owner can share')
+      }
+
+      // Validate email
+      if (!email || !email.includes('@')) {
+        throw new Error('Invalid email address')
+      }
+
+      // Check if already shared
+      const { data: existingShare } = await supabase
+        .from('list_shares')
+        .select('*')
+        .eq('list_id', listId)
+        .eq('invited_email', email.toLowerCase())
+        .single()
+
+      if (existingShare) {
+        throw new Error('List already shared with this user')
+      }
+
+      // Create share invitation
+      const newShare = {
+        id: uuidv4(),
+        list_id: listId,
+        user_id: null,
+        invited_email: email.toLowerCase(),
+        permission_level: permissionLevel,
+        invited_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      }
+
+      const { error } = await (supabase.from('list_shares') as any)
+        .insert([newShare])
+
+      if (error) throw error
+
+      return newShare
+    } catch (error) {
+      console.error('Error sharing list:', error)
+      throw error
+    }
+  }
+
+  // Get shares for a list
+  const getListShares = async (listId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('list_shares')
+        .select('*')
+        .eq('list_id', listId)
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Error fetching list shares:', error)
+      return []
+    }
+  }
+
+  // Remove share
+  const removeShare = async (shareId: string) => {
+    try {
+      const { error } = await supabase
+        .from('list_shares')
+        .delete()
+        .eq('id', shareId)
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error removing share:', error)
+      throw error
+    }
+  }
+
+  // Accept share invitation (converts invited_email to user_id)
+  const acceptShareInvitation = async (listId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !user.email) throw new Error('User not authenticated')
+
+      const { error } = await (supabase.from('list_shares') as any)
+        .update({ user_id: user.id })
+        .eq('list_id', listId)
+        .eq('invited_email', user.email.toLowerCase())
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error accepting invitation:', error)
+      throw error
+    }
+  }
+
+  // Get pending invitations for current user
+  const getPendingInvitations = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !user.email) return []
+
+      const { data, error } = await supabase
+        .from('list_shares')
+        .select(`
+        *,
+        lists:list_id (
+          id,
+          name,
+          owner_id
+        )
+      `)
+        .eq('invited_email', user.email.toLowerCase())
+        .is('user_id', null)
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Error fetching invitations:', error)
+      return []
+    }
+  }
+
   return {
     lists,
     currentList,
@@ -935,9 +985,11 @@ export const useListStore = defineStore('lists', () => {
     updateItemText,
     updateItemNotes,
     updateItemImage,
-    exportToJSON,
-    exportToCSV,
-    exportToText,
-    syncPendingOperations
+    syncPendingOperations,
+    shareList,
+    getListShares,
+    removeShare,
+    acceptShareInvitation,
+    getPendingInvitations,
   }
 })

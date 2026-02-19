@@ -22,9 +22,16 @@ export interface GroceryItem {
 export interface ListShare {
   id: string
   list_id: string
-  user_id: string
+  user_id: string | null
+  invited_email: string | null
   permission_level: 'view' | 'edit'
+  invited_at: string
   created_at: string
+}
+
+export interface ShareInvite {
+  email: string
+  permission: 'view' | 'edit'
 }
 
 export interface Category {

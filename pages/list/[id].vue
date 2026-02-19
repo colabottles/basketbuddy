@@ -4,23 +4,21 @@
       <div class="container">
         <div class="header-content">
           <button
-            @click="router.back()"
+            @click="router.push('/')"
             class="button button-icon-only"
             aria-label="Go back to lists">
             <span aria-hidden="true">←</span>
           </button>
-          <h1 class="app-title">{{ listStore.currentList?.name || 'Loading...' }}</h1>
+          <h1 class="app-title">{{ listStore.currentList?.name || 'BasketBuddy' }}</h1>
           <div class="header-actions">
             <span v-if="!listStore.isOnline" class="offline-badge" role="status" aria-live="polite">
               Offline
             </span>
             <button
-              @click="showExportMenu = !showExportMenu"
+              @click="router.push('/rewards')"
               class="button button-secondary"
-              aria-label="Export list"
-              aria-haspopup="true"
-              :aria-expanded="showExportMenu">
-              Export
+              aria-label="Manage rewards cards">
+              Rewards
             </button>
             <button
               @click="showShareDialog = true"
@@ -40,28 +38,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Export Menu Dropdown -->
-    <div v-if="showExportMenu" class="export-menu" role="menu">
-      <button
-        @click="handleExport('json')"
-        class="export-menu-item"
-        role="menuitem">
-        Export as JSON
-      </button>
-      <button
-        @click="handleExport('csv')"
-        class="export-menu-item"
-        role="menuitem">
-        Export as CSV
-      </button>
-      <button
-        @click="handleExport('text')"
-        class="export-menu-item"
-        role="menuitem">
-        Export as Text
-      </button>
-    </div>
 
     <main id="main-content" class="main-content">
       <div class="container">
@@ -488,12 +464,62 @@
       role="dialog"
       aria-labelledby="share-title"
       aria-modal="true">
-      <div class="dialog" @click.stop>
+      <div class="dialog dialog-large" @click.stop>
         <h2 id="share-title" class="dialog-title">Share List</h2>
         <p class="dialog-description">
-          Share this list with others so they can view and edit items in real-time.
+          Invite others to view or edit this list with you.
         </p>
 
+        <!-- Share Form -->
+        <div class="share-form">
+          <h3 class="share-subtitle">Invite by Email</h3>
+          <div class="share-input-group">
+            <input
+              v-model="shareEmail"
+              type="email"
+              class="input"
+              placeholder="Enter email address"
+              @keyup.enter="handleShareList" />
+            <select v-model="sharePermission" class="input share-permission-select">
+              <option value="edit">Can Edit</option>
+              <option value="view">Can View</option>
+            </select>
+            <button
+              @click="handleShareList"
+              class="button button-primary"
+              :disabled="!shareEmail.trim() || isSharingList">
+              {{ isSharingList ? 'Sending...' : 'Send Invite' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Current Shares -->
+        <div v-if="listShares.length > 0" class="shares-list">
+          <h3 class="share-subtitle">People with Access</h3>
+          <div v-if="isLoadingShares" class="loading-shares">
+            <div class="spinner-small"></div>
+            <span>Loading...</span>
+          </div>
+          <ul v-else class="shares-items">
+            <li v-for="share in listShares" :key="share.id" class="share-item">
+              <div class="share-info">
+                <span class="share-email">{{ share.invited_email || 'User' }}</span>
+                <span class="share-permission">
+                  {{ share.permission_level === 'edit' ? 'Can Edit' : 'Can View' }}
+                </span>
+                <span v-if="!share.user_id" class="share-pending">Pending</span>
+              </div>
+              <button
+                @click="handleRemoveShare(share.id, share.invited_email)"
+                class="button-icon button-danger"
+                aria-label="Remove access">
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Share Link -->
         <div class="share-section">
           <h3 class="share-subtitle">Share Link</h3>
           <div class="share-link-group">
@@ -511,7 +537,7 @@
             </button>
           </div>
           <p class="help-text">
-            Anyone with this link can view and edit this list
+            Anyone with this link can view this list
           </p>
         </div>
 
@@ -520,7 +546,7 @@
             type="button"
             @click="closeShareDialog"
             class="button button-secondary">
-            Close
+            Done
           </button>
         </div>
       </div>
@@ -543,11 +569,12 @@
 </template>
 
 <script setup lang="ts">
-import { useListStore } from '~/stores/listStores'
+import { useListStore } from '~/stores/listStore'
 import { useRealtimeSubscription } from '~/composables/useRealtimeSubscription'
 import Sortable from 'sortablejs'
 import type { Category, GroceryItem } from '~/types/models'
 import { clearAllData } from '~/utils/indexedDB'
+import { getList } from '~/utils/indexedDB'
 
 definePageMeta({
   middleware: 'auth'
@@ -588,7 +615,6 @@ const shareLinkInput = ref<HTMLInputElement | null>(null)
 const linkCopied = ref(false)
 const showUpdateNotification = ref(false)
 const updateMessage = ref('')
-const showExportMenu = ref(false)
 const showCategoryDialog = ref(false)
 const newCategoryName = ref('')
 const newCategoryColor = ref('#9333ea')
@@ -607,6 +633,12 @@ const isDeletingItem = ref(false)
 const editingImage = ref<File | null>(null)
 const editingImagePreview = ref<string | null>(null)
 const imageInput = ref<HTMLInputElement | null>(null)
+const listShares = ref<any[]>([])
+const isLoadingShares = ref(false)
+const shareEmail = ref('')
+const sharePermission = ref<'view' | 'edit'>('edit')
+const isSharingList = ref(false)
+const isLoggingOut = ref(false)
 
 let sortableInstance: Sortable | null = null
 
@@ -619,8 +651,6 @@ onMounted(async () => {
   nextTick(() => {
     newItemInput.value?.focus()
   })
-
-  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
@@ -628,15 +658,7 @@ onUnmounted(() => {
   if (sortableInstance) {
     sortableInstance.destroy()
   }
-  document.removeEventListener('click', handleClickOutside)
 })
-
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
-  if (!target.closest('.export-menu') && !target.closest('[aria-label="Export list"]')) {
-    showExportMenu.value = false
-  }
-}
 
 const loadListData = async () => {
   try {
@@ -649,6 +671,58 @@ const loadListData = async () => {
     await listStore.fetchCategories?.(listId.value)
   } catch (error) {
     console.error('Error loading list:', error)
+  }
+}
+
+const loadListShares = async () => {
+  if (!listId.value) return
+
+  isLoadingShares.value = true
+  try {
+    const shares = await listStore.getListShares?.(listId.value)
+    listShares.value = shares || []
+  } catch (error) {
+    console.error('Error loading shares:', error)
+  } finally {
+    isLoadingShares.value = false
+  }
+}
+
+const handleShareList = async () => {
+  const email = shareEmail.value.trim()
+  if (!email || isSharingList.value) return
+
+  if (!email.includes('@')) {
+    alert('Please enter a valid email address')
+    return
+  }
+
+  isSharingList.value = true
+  try {
+    await listStore.shareList?.(listId.value, email, sharePermission.value)
+    shareEmail.value = ''
+    sharePermission.value = 'edit'
+    await loadListShares()
+    showNotification(`Invitation sent to ${email}`)
+  } catch (error: any) {
+    console.error('Error sharing list:', error)
+    alert(error.message || 'Failed to share list. Please try again.')
+  } finally {
+    isSharingList.value = false
+  }
+}
+
+const handleRemoveShare = async (shareId: string, email: string) => {
+  const confirmed = confirm(`Remove access for ${email}?`)
+  if (!confirmed) return
+
+  try {
+    await listStore.removeShare?.(shareId)
+    await loadListShares()
+    showNotification('Access removed')
+  } catch (error) {
+    console.error('Error removing share:', error)
+    alert('Failed to remove access. Please try again.')
   }
 }
 
@@ -769,7 +843,7 @@ const clearCategoryFilter = () => {
 
 const getCategoryColor = (categoryName: string): string => {
   if (!listStore.categories) return '#6b7280'
-  const category = listStore.categories.find(c => c.name === categoryName)
+  const category = listStore.categories.find((c: Category) => c.name === categoryName)
   return category?.color || '#6b7280'
 }
 
@@ -781,7 +855,6 @@ const handleAddItem = async () => {
   try {
     const newItem = await listStore.addItem?.(listId.value, text)
 
-    // Assign category if one is selected or if filtering by category
     const categoryToAssign = newItemCategory.value || selectedCategory.value
     if (categoryToAssign && newItem) {
       await listStore.updateItemCategory?.(newItem.id, categoryToAssign)
@@ -819,13 +892,11 @@ const handleImageSelect = (event: Event) => {
   const file = input.files?.[0]
 
   if (file) {
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file')
       return
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be less than 5MB')
       return
@@ -833,7 +904,6 @@ const handleImageSelect = (event: Event) => {
 
     editingImage.value = file
 
-    // Create preview
     const reader = new FileReader()
     reader.onload = (e) => {
       editingImagePreview.value = e.target?.result as string
@@ -868,11 +938,9 @@ const saveEdit = async (itemId: string) => {
     await listStore.updateItemText?.(itemId, editingText.value.trim())
     await listStore.updateItemNotes?.(itemId, editingNotes.value.trim() || null)
 
-    // Handle image upload
     if (editingImage.value) {
       await listStore.updateItemImage?.(itemId, editingImage.value)
     } else if (editingImagePreview.value === null) {
-      // Image was removed
       const item = listStore.currentItems?.find((i: GroceryItem) => i.id === itemId)
       if (item?.image_url) {
         await listStore.updateItemImage?.(itemId, null)
@@ -930,7 +998,7 @@ const handleClearCompleted = async () => {
 const closeCategoryDialog = () => {
   showCategoryDialog.value = false
   newCategoryName.value = ''
-  newCategoryColor.value = '#2563eb'
+  newCategoryColor.value = '#9333ea'
 }
 
 watch(showCategoryDialog, (show) => {
@@ -998,6 +1066,9 @@ const shareLink = computed(() => {
 const closeShareDialog = () => {
   showShareDialog.value = false
   linkCopied.value = false
+  shareEmail.value = ''
+  sharePermission.value = 'edit'
+  listShares.value = []
 }
 
 const copyShareLink = async () => {
@@ -1016,54 +1087,12 @@ const copyShareLink = async () => {
 
 watch(showShareDialog, (show) => {
   if (show) {
+    loadListShares()
     nextTick(() => {
       shareLinkInput.value?.select()
     })
   }
 })
-
-const handleExport = (format: 'json' | 'csv' | 'text') => {
-  showExportMenu.value = false
-
-  const listName = listStore.currentList?.name || 'grocery-list'
-  const timestamp = new Date().toISOString().split('T')[0]
-
-  let content: string
-  let mimeType: string
-  let extension: string
-
-  switch (format) {
-    case 'json':
-      content = JSON.stringify(listStore.exportToJSON?.() || {}, null, 2)
-      mimeType = 'application/json'
-      extension = 'json'
-      break
-    case 'csv':
-      content = listStore.exportToCSV?.() || ''
-      mimeType = 'text/csv'
-      extension = 'csv'
-      break
-    case 'text':
-      content = listStore.exportToText?.() || ''
-      mimeType = 'text/plain'
-      extension = 'txt'
-      break
-  }
-
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${listName}-${timestamp}.${extension}`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-
-  showNotification(`Exported as ${extension.toUpperCase()}`)
-}
-
-const isLoggingOut = ref(false)
 
 const handleLogout = async () => {
   isLoggingOut.value = true
@@ -1178,31 +1207,6 @@ useHead({
 
 .button-secondary:hover {
   background-color: rgba(255, 255, 255, 0.3);
-}
-
-.export-menu {
-  position: absolute;
-  top: 100%;
-  right: var(--spacing-md);
-  background-color: var(--color-background);
-  border: 2px solid var(--color-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-top: var(--spacing-xs);
-  z-index: 100;
-  min-width: 180px;
-}
-
-.export-menu-item {
-  display: block;
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  text-align: left;
-  background: none;
-  border: none;
-  color: var(--color-text);
-  cursor: pointer;
-  font-size: var(--font-size-base);
 }
 
 .export-menu-item:hover {
@@ -1730,6 +1734,119 @@ useHead({
   color: var(--color-text);
   margin: 0 0 var(--spacing-lg) 0;
   line-height: 1.5;
+}
+
+.dialog-large {
+  max-width: 600px;
+}
+
+.share-form {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.share-subtitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
+}
+
+.share-input-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.share-input-group .input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.share-permission-select {
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.shares-list {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.loading-shares {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.shares-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.share-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background-color: var(--color-surface);
+  border-radius: 0.375rem;
+  gap: var(--spacing-md);
+}
+
+.share-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.share-email {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.share-permission {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.share-pending {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #fbbf24;
+  color: #78350f;
+  border-radius: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .share-input-group {
+    flex-direction: column;
+  }
+
+  .share-input-group .input,
+  .share-permission-select {
+    width: 100%;
+  }
 }
 
 .form-group {

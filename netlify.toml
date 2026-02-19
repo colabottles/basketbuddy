@@ -3,7 +3,7 @@
   publish = ".output/public"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"  # Change from 18 to 20
 
 [[redirects]]
   from = "/*"
