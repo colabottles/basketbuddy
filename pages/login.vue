@@ -232,4 +232,81 @@ useHead({
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .auth-container {
+    padding: var(--spacing-md);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .auth-card {
+    padding: var(--spacing-lg);
+    margin: 0;
+    width: 100%;
+  }
+
+  .auth-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .auth-subtitle {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .form-group {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .form-label {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .input {
+    font-size: 16px;
+    /* Prevents iOS zoom */
+    height: 48px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .button-primary {
+    height: 48px;
+    font-size: var(--font-size-base);
+    width: 100%;
+    margin-top: var(--spacing-md);
+  }
+
+  .auth-footer {
+    margin-top: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+  }
+
+  .auth-link {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* iPhone specific fixes */
+@media (max-width: 428px) {
+  .auth-card {
+    padding: var(--spacing-md);
+  }
+
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Safe area for iPhone notch */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .auth-container {
+    padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+  }
+}
 </style>

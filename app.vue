@@ -27,7 +27,9 @@ useHead({
   meta: [
     { name: 'description', content: 'Collaborative grocery list app with real-time sharing' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'theme-color', content: '#9333ea' }
+    { name: 'theme-color', content: '#9333ea' },
+    { name: 'apple-mobile-web-app-capable', content: 'yes' },
+    { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }
   ]
 })
 </script>
