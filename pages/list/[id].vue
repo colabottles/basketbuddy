@@ -2140,4 +2140,157 @@ useHead({
     font-size: var(--font-size-sm);
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .app-title {
+    font-size: var(--font-size-base);
+    max-width: 150px;
+  }
+
+  .header-actions {
+    gap: var(--spacing-xs);
+  }
+
+  .header-actions .button {
+    padding: 0 var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+
+  .button-icon-only {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .categories-list {
+    gap: var(--spacing-xs);
+  }
+
+  .category-chip {
+    font-size: var(--font-size-xs);
+    padding: 4px var(--spacing-sm);
+    padding-right: var(--spacing-lg);
+  }
+
+  .add-item-form {
+    flex-direction: column;
+  }
+
+  .add-item-group {
+    flex-direction: column;
+  }
+
+  .category-select {
+    min-width: 100%;
+  }
+
+  .drag-handle {
+    min-width: 36px;
+    font-size: var(--font-size-base);
+  }
+
+  .item-row {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .item-text {
+    font-size: var(--font-size-sm);
+  }
+
+  .item-category-pill {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+  }
+
+  .item-notes {
+    font-size: var(--font-size-xs);
+  }
+
+  .item-edit-form {
+    flex-direction: column;
+  }
+
+  .edit-actions {
+    width: 100%;
+  }
+
+  .edit-actions .button {
+    flex: 1;
+  }
+
+  .button-icon {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: var(--font-size-xl);
+  }
+
+  .items-summary {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .items-summary .button {
+    width: 100%;
+  }
+
+  .dialog {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-md);
+    max-width: calc(100vw - var(--spacing-lg));
+  }
+
+  .dialog-large {
+    max-width: calc(100vw - var(--spacing-lg));
+  }
+
+  .share-input-group {
+    flex-direction: column;
+  }
+
+  .share-input-group .input,
+  .share-permission-select {
+    width: 100%;
+  }
+
+  .color-palette {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .color-swatch {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .add-item-group {
+    flex-wrap: wrap;
+  }
+
+  .color-palette {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 800px;
+  }
+
+  .color-palette {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* Landscape phone fixes */
+@media (max-width: 896px) and (orientation: landscape) {
+  .dialog {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
 </style>

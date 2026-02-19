@@ -700,4 +700,107 @@ useHead({
     font-size: var(--font-size-sm);
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .app-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .header-content {
+    gap: var(--spacing-sm);
+  }
+
+  .button-icon-only {
+    min-width: 36px;
+    min-height: 36px;
+    padding: var(--spacing-xs);
+  }
+
+  .page-description {
+    font-size: var(--font-size-sm);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-card {
+    padding: var(--spacing-sm);
+  }
+
+  .card-logo {
+    font-size: 2rem;
+  }
+
+  .card-name {
+    font-size: var(--font-size-base);
+  }
+
+  .retailers-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .retailer-button {
+    padding: var(--spacing-sm);
+  }
+
+  .retailer-logo {
+    font-size: 1.5rem;
+  }
+
+  .retailer-name {
+    font-size: var(--font-size-xs);
+  }
+
+  .dialog {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-md);
+    max-width: calc(100vw - var(--spacing-lg));
+  }
+
+  .dialog-large {
+    max-width: calc(100vw - var(--spacing-lg));
+  }
+
+  .custom-card-form .input {
+    font-size: 16px;
+    /* Prevents zoom on iOS */
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .retailers-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1024px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .retailers-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .dialog-large {
+    max-width: 700px;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1280px) {
+  .cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 </style>

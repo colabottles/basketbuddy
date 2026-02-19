@@ -745,4 +745,68 @@ useHead({
     font-size: var(--font-size-sm);
   }
 }
+
+/* Small devices (landscape phones, 640px and up) */
+@media (max-width: 640px) {
+  .app-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .header-actions {
+    gap: var(--spacing-sm);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .section-header .button {
+    width: 100%;
+  }
+
+  .lists-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invitations-section {
+    padding: var(--spacing-sm);
+  }
+
+  .invitation-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dialog {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .lists-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+  .lists-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .container {
+    max-width: 1024px;
+  }
+}
+
+/* Extra large devices (large desktops, 1280px and up) */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
 </style>
