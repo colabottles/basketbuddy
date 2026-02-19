@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
-    <div class="container">
-      <main id="main-content" class="auth-container">
+    <div class="auth-container">
+      <div class="auth-card">
         <h1 class="auth-title">BasketBuddy</h1>
         <p class="auth-subtitle">Sign in to sync your lists across devices</p>
 
@@ -48,28 +48,34 @@
 
           <button
             type="submit"
-            class="button button-primary button-full"
+            class="button button-primary"
             :disabled="isLoading"
             :aria-busy="isLoading">
             <span v-if="isLoading">Signing in...</span>
             <span v-else>Sign In</span>
           </button>
 
-          <div v-if="generalError" class="error-message" role="alert">
+          <div v-if="generalError" class="error-message general-error" role="alert">
             {{ generalError }}
           </div>
         </form>
 
         <div class="auth-footer">
-          <p>Don't have an account? <NuxtLink to="/signup" class="auth-link">Sign up</NuxtLink>
+          <p>
+            Don't have an account?
+            <NuxtLink to="/signup" class="auth-link">Sign up</NuxtLink>
           </p>
         </div>
-      </main>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'guest'
+})
+
 const supabase = useSupabase()
 const router = useRouter()
 
@@ -86,12 +92,10 @@ const validateEmail = (email: string): boolean => {
 }
 
 const handleLogin = async () => {
-  // Reset errors
   emailError.value = ''
   passwordError.value = ''
   generalError.value = ''
 
-  // Validate
   if (!email.value) {
     emailError.value = 'Email is required'
     return
@@ -132,25 +136,22 @@ const handleLogin = async () => {
   }
 }
 
-onMounted(async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
-    await router.push('/')
-  }
-})
-
 useHead({
   title: 'Sign In - BasketBuddy'
 })
 </script>
 
 <style scoped>
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   padding: var(--spacing-md);
   box-sizing: border-box;
 }
@@ -178,6 +179,7 @@ useHead({
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
   margin-bottom: var(--spacing-2xl);
+  font-size: var(--font-size-base);
 }
 
 .auth-form {
@@ -220,6 +222,24 @@ useHead({
   box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2);
 }
 
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.error-message {
+  color: #fca5a5;
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.general-error {
+  padding: var(--spacing-sm);
+  background-color: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 0.375rem;
+  text-align: center;
+}
+
 .button-primary {
   width: 100%;
   height: 48px;
@@ -235,7 +255,7 @@ useHead({
   box-sizing: border-box;
 }
 
-.button-primary:hover {
+.button-primary:hover:not(:disabled) {
   background-color: var(--color-primary-dark);
 }
 
@@ -247,7 +267,11 @@ useHead({
 .auth-footer {
   text-align: center;
   margin-top: var(--spacing-xl);
+}
+
+.auth-footer p {
   color: rgba(255, 255, 255, 0.7);
+  font-size: var(--font-size-sm);
 }
 
 .auth-link {
