@@ -1,6 +1,6 @@
 [build]
   command = "pnpm build"
-  publish = ".output/public"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"  # Change from 18 to 20
