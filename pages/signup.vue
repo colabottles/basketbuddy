@@ -47,8 +47,7 @@
                 @click="showPassword = !showPassword"
                 class="password-toggle"
                 :aria-label="showPassword ? 'Hide password' : 'Show password'">
-                <span v-if="showPassword" aria-hidden="true">👁️</span>
-                <span v-else aria-hidden="true">👁️‍🗨️</span>
+                <span aria-hidden="true">{{ showPassword ? 'Hide' : 'Show' }}</span>
               </button>
             </div>
             <span id="password-hint" class="help-text">Must be at least 6 characters</span>
@@ -78,8 +77,7 @@
                 @click="showConfirmPassword = !showConfirmPassword"
                 class="password-toggle"
                 :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'">
-                <span v-if="showConfirmPassword" aria-hidden="true">👁️</span>
-                <span v-else aria-hidden="true">👁️‍🗨️</span>
+                <span aria-hidden="true">{{ showConfirmPassword ? 'Hide' : 'Show' }}</span>
               </button>
             </div>
             <span v-if="confirmPasswordError" id="confirm-password-error" class="error-message"
@@ -104,6 +102,8 @@
           <div v-if="successMessage" class="success-message" role="status">
             {{ successMessage }}
           </div>
+
+          <p class="req">Fields marked with <span class="required">*</span> are required.</p>
         </form>
 
         <div class="auth-footer">
@@ -238,24 +238,27 @@ useHead({
 }
 
 .auth-title {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: white;
   text-align: center;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-lg);
 }
 
 .auth-subtitle {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  margin-bottom: var(--spacing-2xl);
+  margin: var(--spacing-xl);
   font-size: var(--font-size-base);
+  line-height: 1.6;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  padding: 0 var(--spacing-md);
 }
 
 .form-group {
@@ -265,35 +268,28 @@ useHead({
 }
 
 .form-label {
-  font-weight: 500;
+  font-weight: 600;
   color: white;
-  font-size: var(--font-size-sm);
-}
-
-.input {
-  width: 100%;
-  padding: var(--spacing-md);
   font-size: var(--font-size-base);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.5rem;
-  background-color: rgba(15, 23, 42, 0.5);
-  color: white;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
+  margin-bottom: var(--spacing-xs);
 }
 
-.input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+p.req {
+  margin: 0 auto;
 }
 
-.input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2);
+span.required {
+  color: red;
 }
 
-.input[aria-invalid="true"] {
-  border-color: var(--color-danger);
+.form-label span {
+  color: red;
+}
+
+.help-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
 }
 
 .password-input-wrapper {
@@ -303,7 +299,7 @@ useHead({
 }
 
 .input-with-icon {
-  padding-right: 48px;
+  padding-right: 60px;
 }
 
 .password-toggle {
@@ -311,35 +307,37 @@ useHead({
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: rgba(147, 51, 234, 0.2);
   border: none;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   cursor: pointer;
-  font-size: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.6);
-  transition: color 0.2s;
+  color: var(--color-primary);
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 48px;
+  min-height: 36px;
   border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .password-toggle:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(147, 51, 234, 0.3);
+  color: white;
+}
+
+.password-toggle:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .password-toggle:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-}
-
-.help-text {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: var(--font-size-xs);
 }
 
 .error-message {
@@ -368,7 +366,7 @@ useHead({
 
 .button-primary {
   width: 100%;
-  height: 48px;
+  height: 52px;
   margin-top: var(--spacing-md);
   background-color: var(--color-primary);
   color: white;
@@ -397,23 +395,25 @@ useHead({
 .auth-footer {
   text-align: center;
   margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
 }
 
 .auth-footer p {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-base);
   margin: 0;
+  line-height: 1.6;
 }
 
 .auth-link {
   color: var(--color-primary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.2s;
 }
 
 .auth-link:hover {
-  color: var(--color-primary-dark);
+  color: #a855f7;
   text-decoration: underline;
 }
 
@@ -436,30 +436,39 @@ useHead({
 
   .auth-title {
     font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
   }
 
   .auth-subtitle {
     font-size: var(--font-size-sm);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .auth-form {
+    padding: 0;
+    gap: var(--spacing-md);
+  }
+
+  .auth-footer {
+    padding: var(--spacing-md) 0 0;
+    margin-top: var(--spacing-xl);
+  }
+
+  .auth-footer p {
+    font-size: var(--font-size-sm);
   }
 
   .input {
     font-size: 16px;
-    /* Prevents iOS zoom */
-    padding: var(--spacing-sm) var(--spacing-md);
     height: 48px;
   }
 
   .input-with-icon {
-    padding-right: 48px;
-  }
-
-  .auth-form {
-    gap: var(--spacing-md);
+    padding-right: 60px;
   }
 }
 
-/* Extra small devices (iPhone SE, etc) */
+/* Extra small devices */
 @media (max-width: 375px) {
   .auth-card {
     padding: var(--spacing-lg) var(--spacing-md);
@@ -470,7 +479,7 @@ useHead({
   }
 }
 
-/* Tablet and up - slightly larger card */
+/* Tablet and up */
 @media (min-width: 768px) {
   .auth-card {
     padding: var(--spacing-2xl) var(--spacing-xl);

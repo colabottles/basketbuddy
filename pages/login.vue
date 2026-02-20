@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
-    <div class="container">
-      <main id="main-content" class="auth-container">
+    <div class="auth-container">
+      <div class="auth-card">
         <h1 class="auth-title">BasketBuddy</h1>
         <p class="auth-subtitle">Sign in to sync your lists across devices</p>
 
@@ -31,16 +31,25 @@
               Password
               <span aria-hidden="true">*</span>
             </label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              class="input"
-              autocomplete="current-password"
-              required
-              aria-required="true"
-              aria-describedby="password-error"
-              :aria-invalid="passwordError ? 'true' : 'false'" />
+            <div class="password-input-wrapper">
+              <input
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                class="input input-with-icon"
+                autocomplete="current-password"
+                required
+                aria-required="true"
+                aria-describedby="password-error"
+                :aria-invalid="passwordError ? 'true' : 'false'" />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'">
+                <span aria-hidden="true">{{ showPassword ? 'Hide' : 'Show' }}</span>
+              </button>
+            </div>
             <span v-if="passwordError" id="password-error" class="error-message" role="alert">
               {{ passwordError }}
             </span>
@@ -48,33 +57,42 @@
 
           <button
             type="submit"
-            class="button button-primary button-full"
+            class="button button-primary"
             :disabled="isLoading"
             :aria-busy="isLoading">
             <span v-if="isLoading">Signing in...</span>
             <span v-else>Sign In</span>
           </button>
 
-          <div v-if="generalError" class="error-message" role="alert">
+          <div v-if="generalError" class="error-message general-error" role="alert">
             {{ generalError }}
           </div>
+
+          <p class="req">Fields marked with <span class="required">*</span> are required.</p>
         </form>
 
         <div class="auth-footer">
-          <p>Don't have an account? <NuxtLink to="/signup" class="auth-link">Sign up</NuxtLink>
+          <p>
+            Don't have an account?
+            <NuxtLink to="/signup" class="auth-link">Sign up</NuxtLink>
           </p>
         </div>
-      </main>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'guest'
+})
+
 const supabase = useSupabase()
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
@@ -86,12 +104,10 @@ const validateEmail = (email: string): boolean => {
 }
 
 const handleLogin = async () => {
-  // Reset errors
   emailError.value = ''
   passwordError.value = ''
   generalError.value = ''
 
-  // Validate
   if (!email.value) {
     emailError.value = 'Email is required'
     return
@@ -132,13 +148,6 @@ const handleLogin = async () => {
   }
 }
 
-onMounted(async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
-    await router.push('/')
-  }
-})
-
 useHead({
   title: 'Sign In - BasketBuddy'
 })
@@ -147,40 +156,51 @@ useHead({
 <style scoped>
 .auth-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-surface);
 }
 
 .auth-container {
   width: 100%;
-  max-width: 400px;
-  background-color: var(--color-background);
-  padding: var(--spacing-xl);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 420px;
+  padding: var(--spacing-md);
+  box-sizing: border-box;
+}
+
+.auth-card {
+  background-color: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-2xl);
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-title {
   font-size: var(--font-size-2xl);
   font-weight: 700;
+  color: white;
   text-align: center;
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-lg);
 }
 
 .auth-subtitle {
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-xl);
   font-size: var(--font-size-base);
+  line-height: 1.6;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  padding: 0 var(--spacing-md);
 }
 
 .form-group {
@@ -190,40 +210,135 @@ useHead({
 }
 
 .form-label {
-  font-weight: 500;
+  font-weight: 600;
+  color: white;
   font-size: var(--font-size-base);
-  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+p.req {
+  margin: 0 auto;
+}
+
+span.required {
+  color: red;
+}
+
+.form-label span {
+  color: red;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon {
+  padding-right: 60px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(147, 51, 234, 0.2);
+  border: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-primary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 36px;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.password-toggle:hover {
+  background-color: rgba(147, 51, 234, 0.3);
+  color: white;
+}
+
+.password-toggle:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .error-message {
-  color: var(--color-danger);
+  color: #fca5a5;
   font-size: var(--font-size-sm);
   margin-top: var(--spacing-xs);
 }
 
-.button-primary {
-  background-color: var(--color-primary);
-  color: white;
+.general-error {
+  padding: var(--spacing-sm);
+  background-color: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 0.375rem;
+  text-align: center;
 }
 
-.button-full {
+.button-primary {
   width: 100%;
+  height: 52px;
+  margin-top: var(--spacing-md);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  box-sizing: border-box;
+}
+
+.button-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.button-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .auth-footer {
-  margin-top: var(--spacing-lg);
   text-align: center;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+}
+
+.auth-footer p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-base);
+  margin: 0;
+  line-height: 1.6;
 }
 
 .auth-link {
   color: var(--color-primary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 0.2s;
 }
 
 .auth-link:hover {
+  color: #a855f7;
   text-decoration: underline;
 }
 
@@ -231,5 +346,78 @@ useHead({
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* Mobile portrait optimizations */
+@media (max-width: 640px) {
+  .auth-container {
+    max-width: 100%;
+    padding: var(--spacing-sm);
+  }
+
+  .auth-card {
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+
+  .auth-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .auth-subtitle {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .auth-form {
+    padding: 0;
+    gap: var(--spacing-md);
+  }
+
+  .auth-footer {
+    padding: var(--spacing-md) 0 0;
+    margin-top: var(--spacing-xl);
+  }
+
+  .auth-footer p {
+    font-size: var(--font-size-sm);
+  }
+
+  .input {
+    font-size: 16px;
+    height: 48px;
+  }
+
+  .input-with-icon {
+    padding-right: 60px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 375px) {
+  .auth-card {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .auth-card {
+    padding: var(--spacing-2xl) var(--spacing-xl);
+  }
+}
+
+/* Safe area for iPhone notch */
+@supports (padding: env(safe-area-inset-top)) {
+  .auth-container {
+    padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+    padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-md), env(safe-area-inset-right));
+  }
 }
 </style>
