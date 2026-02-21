@@ -333,7 +333,7 @@ span.required {
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(147, 51, 234, 0.2);
+  background: transparent;
   border: none;
   padding: var(--spacing-xs);
   cursor: pointer;
@@ -352,7 +352,7 @@ span.required {
 }
 
 .password-toggle:hover {
-  background-color: rgba(147, 51, 234, 0.3);
+  background-color: transparent;
   color: white;
 }
 
