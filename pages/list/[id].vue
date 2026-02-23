@@ -1283,17 +1283,24 @@ useHead({
 .button-icon-only {
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
-  padding: var(--spacing-xs);
+  padding: var(--spacing-sm);
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   border-radius: 0.25rem;
   font-size: var(--font-size-xl);
   cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.2s;
 }
 
 .button-icon-only:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-icon-only:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
 }
 
 .button-danger {
