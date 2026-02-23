@@ -120,6 +120,30 @@
                   </option>
                 </select>
               </div>
+
+              <!-- Image Upload for New Item -->
+              <div class="input-group">
+                <input
+                  ref="newItemImageInput"
+                  type="file"
+                  accept="image/*"
+                  @change="handleNewItemImageSelect"
+                  class="visually-hidden"
+                  id="new-item-image-input" />
+                <div v-if="newItemImagePreview" class="new-item-image-preview">
+                  <img :src="newItemImagePreview" alt="New item preview" />
+                  <button
+                    type="button"
+                    @click="removeNewItemImage"
+                    class="remove-image-btn"
+                    aria-label="Remove image">
+                    ×
+                  </button>
+                </div>
+                <label v-else for="new-item-image-input" class="image-upload-label">
+                  <span aria-hidden="true">📷</span> Add Photo
+                </label>
+              </div>
             </div>
 
             <button
@@ -182,6 +206,17 @@
                         </span>
                       </div>
                       <span v-if="item.notes" class="item-notes">{{ item.notes }}</span>
+                      <!-- Image thumbnail in list -->
+                      <div v-if="item.image_url" class="item-image-thumbnail">
+                        <img
+                          :src="item.image_url"
+                          :alt="item.text"
+                          @click="openImageViewer(item.image_url, item.text)"
+                          role="button"
+                          tabindex="0"
+                          @keyup.enter="openImageViewer(item.image_url, item.text)"
+                          @keyup.space.prevent="openImageViewer(item.image_url, item.text)" />
+                      </div>
                     </div>
                   </div>
 
@@ -541,6 +576,30 @@
           </p>
         </div>
 
+        <!-- Image Viewer Modal -->
+        <div
+          v-if="viewingImage"
+          class="image-viewer-overlay"
+          @click="closeImageViewer"
+          role="dialog"
+          aria-labelledby="image-viewer-title"
+          aria-modal="true">
+          <div class="image-viewer-content" @click.stop>
+            <div class="image-viewer-header">
+              <h2 id="image-viewer-title" class="image-viewer-title">{{ viewingImageAlt }}</h2>
+              <button
+                @click="closeImageViewer"
+                class="image-viewer-close"
+                aria-label="Close image viewer">
+                ×
+              </button>
+            </div>
+            <div class="image-viewer-body">
+              <img :src="viewingImage" :alt="viewingImageAlt" />
+            </div>
+          </div>
+        </div>
+
         <div class="dialog-actions">
           <button
             type="button"
@@ -628,6 +687,9 @@ const newItemText = ref('')
 const newItemCategory = ref<string | null>(null)
 const newItemInput = ref<HTMLInputElement | null>(null)
 const isAddingItem = ref(false)
+const newItemImage = ref<File | null>(null)
+const newItemImagePreview = ref<string | null>(null)
+const newItemImageInput = ref<HTMLInputElement | null>(null)
 const showShareDialog = ref(false)
 const shareLinkInput = ref<HTMLInputElement | null>(null)
 const linkCopied = ref(false)
@@ -651,6 +713,8 @@ const isDeletingItem = ref(false)
 const editingImage = ref<File | null>(null)
 const editingImagePreview = ref<string | null>(null)
 const imageInput = ref<HTMLInputElement | null>(null)
+const viewingImage = ref<string | null>(null)
+const viewingImageAlt = ref<string>('')
 const listShares = ref<any[]>([])
 const isLoadingShares = ref(false)
 const shareEmail = ref('')
@@ -820,6 +884,49 @@ const setupDragAndDrop = () => {
   })
 }
 
+const handleNewItemImageSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    newItemImage.value = file
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      newItemImagePreview.value = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeNewItemImage = () => {
+  newItemImage.value = null
+  newItemImagePreview.value = null
+  if (newItemImageInput.value) {
+    newItemImageInput.value.value = ''
+  }
+}
+
+const openImageViewer = (imageUrl: string, itemName: string) => {
+  viewingImage.value = imageUrl
+  viewingImageAlt.value = itemName
+}
+
+const closeImageViewer = () => {
+  viewingImage.value = null
+  viewingImageAlt.value = ''
+}
+
 const showNotification = (message: string) => {
   updateMessage.value = message
   showUpdateNotification.value = true
@@ -878,8 +985,18 @@ const handleAddItem = async () => {
       await listStore.updateItemCategory?.(newItem.id, categoryToAssign)
     }
 
+    // Upload image if one was selected
+    if (newItemImage.value && newItem) {
+      await listStore.updateItemImage?.(newItem.id, newItemImage.value)
+    }
+
     newItemText.value = ''
     newItemCategory.value = null
+    newItemImage.value = null
+    newItemImagePreview.value = null
+    if (newItemImageInput.value) {
+      newItemImageInput.value.value = ''
+    }
     newItemInput.value?.focus()
   } catch (error) {
     console.error('Error adding item:', error)
@@ -1467,6 +1584,29 @@ useHead({
   min-width: 0;
 }
 
+.new-item-image-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 120px;
+}
+
+.new-item-image-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .add-item-group {
+    flex-direction: column;
+  }
+
+  .new-item-image-preview {
+    max-width: 100%;
+  }
+}
+
 .checkbox-container {
   position: relative;
   display: flex;
@@ -1651,6 +1791,144 @@ useHead({
 
 .item-image img:hover {
   transform: scale(1.02);
+}
+
+.item-image-thumbnail {
+  margin-top: var(--spacing-sm);
+  max-width: 80px;
+  cursor: pointer;
+}
+
+.item-image-thumbnail img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.item-image-thumbnail img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.item-image-thumbnail img:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.image-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.image-viewer-content {
+  background-color: var(--color-background);
+  border-radius: 0.5rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.image-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.image-viewer-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.image-viewer-close {
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-xs);
+  background: none;
+  border: none;
+  font-size: var(--font-size-3xl);
+  line-height: 1;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.image-viewer-close:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.image-viewer-close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.image-viewer-body {
+  padding: var(--spacing-lg);
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-viewer-body img {
+  max-width: 100%;
+  max-height: 70vh;
+  height: auto;
+  border-radius: 0.375rem;
+}
+
+@media (max-width: 640px) {
+  .item-image-thumbnail {
+    max-width: 60px;
+  }
+
+  .image-viewer-content {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .image-viewer-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .image-viewer-title {
+    font-size: var(--font-size-base);
+  }
+
+  .image-viewer-body {
+    padding: var(--spacing-md);
+  }
+
+  .image-viewer-body img {
+    max-height: 60vh;
+  }
 }
 
 .edit-fields {
