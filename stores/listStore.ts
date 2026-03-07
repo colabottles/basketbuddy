@@ -73,50 +73,35 @@ export const useListStore = defineStore('lists', () => {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('No user found when fetching lists')
+        return
+      }
+
       const { data: userLists, error } = await supabase
         .from('lists')
         .select('*')
         .order('updated_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching lists from Supabase:', error)
+        throw error
+      }
 
-      if (userLists) {
+      console.log('Fetched lists from Supabase:', userLists) // Debug log
+
+      if (userLists && userLists.length > 0) {
         for (const list of userLists) {
           await saveList(list as GroceryList)
         }
         lists.value = userLists as GroceryList[]
+      } else {
+        lists.value = []
       }
     } catch (error) {
       console.error('Error fetching lists:', error)
       await loadListsFromLocal()
-    }
-  }
-
-  // Fetch list items from Supabase
-  const fetchListItems = async (listId: string) => {
-    if (!isOnline.value) {
-      await loadItemsFromLocal(listId)
-      return
-    }
-
-    try {
-      const { data: items, error } = await supabase
-        .from('list_items')
-        .select('*')
-        .eq('list_id', listId)
-        .order('item_order', { ascending: true })
-
-      if (error) throw error
-
-      if (items) {
-        for (const item of items) {
-          await saveListItem(item as GroceryItem)
-        }
-        currentItems.value = items as GroceryItem[]
-      }
-    } catch (error) {
-      console.error('Error fetching list items:', error)
-      await loadItemsFromLocal(listId)
     }
   }
 
@@ -971,7 +956,6 @@ export const useListStore = defineStore('lists', () => {
     lastSyncTime,
     loadListsFromLocal,
     fetchLists,
-    fetchListItems,
     fetchCategories,
     createList,
     addItem,

@@ -749,7 +749,7 @@ const loadListData = async () => {
       listStore.currentList = list
     }
 
-    await listStore.fetchListItems?.(listId.value)
+    await listStore.fetchLists?.()
     await listStore.fetchCategories?.(listId.value)
   } catch (error) {
     console.error('Error loading list:', error)
@@ -781,10 +781,16 @@ const handleShareList = async () => {
 
   isSharingList.value = true
   try {
-    await listStore.shareList?.(listId.value, email, sharePermission.value)
+    // Call your store to add the share
+    const newShare = await listStore.shareList?.(listId.value, email, sharePermission.value)
+
+    if (newShare) {
+      // Add it directly to listShares.value
+      listShares.value.push(newShare)
+    }
+
     shareEmail.value = ''
     sharePermission.value = 'edit'
-    await loadListShares()
     showNotification(`Invitation sent to ${email}`)
   } catch (error: any) {
     console.error('Error sharing list:', error)
@@ -800,7 +806,10 @@ const handleRemoveShare = async (shareId: string, email: string) => {
 
   try {
     await listStore.removeShare?.(shareId)
-    await loadListShares()
+
+    // Remove it from listShares.value directly
+    listShares.value = listShares.value.filter(share => share.id !== shareId)
+
     showNotification('Access removed')
   } catch (error) {
     console.error('Error removing share:', error)
