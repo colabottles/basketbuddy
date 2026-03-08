@@ -2,7 +2,10 @@
   <div class="auth-page">
     <div class="auth-container">
       <div class="auth-card">
-        <h1 class="auth-title">BasketBuddy</h1>
+        <div class="auth-logo">
+          <img src="/logo.svg" alt="BasketBuddy Logo" class="logo-image" />
+          <h1 class="auth-title">BasketBuddy</h1>
+        </div>
         <p class="auth-subtitle">Sign in to sync your lists across devices</p>
 
         <form @submit.prevent="handleLogin" class="auth-form" novalidate>
@@ -167,6 +170,36 @@ useHead({
 </script>
 
 <style scoped>
+.auth-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.logo-image {
+  width: 120px;
+  height: 120px;
+  margin-top: 1rem;
+}
+
+.auth-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .logo-image {
+    width: 100px;
+    height: 100px;
+  }
+}
+
 .auth-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
