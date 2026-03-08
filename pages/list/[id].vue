@@ -21,10 +21,10 @@
               Rewards
             </button>
             <button
-              @click="showShareDialog = true"
+              @click="router.push('/settings')"
               class="button button-secondary"
-              aria-label="Share this list">
-              Share
+              aria-label="Account settings">
+              Settings
             </button>
             <button
               @click="handleLogout"

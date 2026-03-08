@@ -12,6 +12,25 @@
               Rewards
             </button>
             <button
+              @click="router.push('/settings')"
+              class="button button-secondary"
+              aria-label="Account settings">
+              Settings
+            </button>
+            <button
+              @click="router.push('/settings')"
+              class="button button-icon-only avatar-button"
+              aria-label="View profile">
+              <img
+                v-if="avatarUrl"
+                :src="avatarUrl"
+                alt="Profile"
+                class="header-avatar" />
+              <span v-else class="header-avatar-placeholder" aria-hidden="true">
+                {{ userInitials }}
+              </span>
+            </button>
+            <button
               @click="handleLogout"
               class="button button-secondary"
               :disabled="isLoggingOut"
@@ -156,7 +175,7 @@
           </button>
           <button
             @click="handleDeleteList"
-            class="button button-danger"
+            class="button delete-button"
             :disabled="isDeleting">
             Delete
           </button>
@@ -209,8 +228,11 @@ const listToDelete = ref<GroceryList | null>(null)
 const isDeleting = ref(false)
 const isLoggingOut = ref(false)
 
+const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
+
 onMounted(async () => {
   const { data: { user } } = await supabase.auth.getUser()
+  await loadAvatar()
   console.log('Current user on index page:', user)
 
   isLoading.value = true
@@ -560,6 +582,21 @@ useHead({
   margin-top: var(--spacing-lg);
 }
 
+.delete-button {
+  background-color: #dc2626;
+  color: white;
+  font-weight: 500;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.delete-button:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
 .invitations-section {
   margin-bottom: var(--spacing-xl);
   padding: var(--spacing-md);
@@ -647,6 +684,31 @@ useHead({
   }
 }
 
+.avatar-button {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: white;
+}
+
 .loading-text {
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
@@ -715,7 +777,6 @@ useHead({
 }
 
 @keyframes heartbeat {
-
   0%,
   100% {
     transform: scale(1);

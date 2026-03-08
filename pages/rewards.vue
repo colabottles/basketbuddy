@@ -10,12 +10,20 @@
             <span aria-hidden="true">←</span>
           </button>
           <h1 class="app-title">Rewards Cards</h1>
-          <button
-            @click="showAddCardDialog = true"
-            class="button button-secondary"
-            aria-label="Add rewards card">
-            Add Card
-          </button>
+          <div class="header-actions">
+            <button
+              @click="router.push('/settings')"
+              class="button button-secondary"
+              aria-label="Account settings">
+              Settings
+            </button>
+            <button
+              @click="showAddCardDialog = true"
+              class="button button-secondary"
+              aria-label="Add rewards card">
+              Add Card
+            </button>
+          </div>
         </div>
       </div>
     </header>
