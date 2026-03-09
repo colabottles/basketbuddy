@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  routeRules: {},
 
   // nuxt.config.ts
   app: {
@@ -74,7 +75,12 @@ export default defineNuxtConfig({
         { url: '/', revision: null }
       ],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      navigateFallbackDenylist: [/^\/api\//],
       runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/.*/i,
+          handler: 'NetworkOnly',  // Never cache auth endpoints
+        },
         {
           urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
           handler: 'NetworkFirst',
@@ -87,10 +93,6 @@ export default defineNuxtConfig({
           }
         }
       ]
-    },
-    devOptions: {
-      enabled: true,
-      type: 'module'
     }
   },
 
