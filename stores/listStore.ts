@@ -230,6 +230,29 @@ export const useListStore = defineStore('lists', () => {
     return newItem
   }
 
+  const fetchItems = async (listId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('list_items')
+        .select('*')
+        .eq('list_id', listId)
+        .order('item_order', { ascending: true })
+
+      if (error) throw error
+
+      if (data) {
+        for (const item of data) {
+          await saveListItem(item as GroceryItem)
+        }
+        currentItems.value = data as GroceryItem[]
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error)
+      const localItems = await getListItems(listId)
+      currentItems.value = localItems.sort((a, b) => a.item_order - b.item_order)
+    }
+  }
+
   // Toggle item checked status
   const toggleItem = async (itemId: string) => {
     const itemIndex = currentItems.value.findIndex((i: GroceryItem) => i.id === itemId)
@@ -952,6 +975,7 @@ export const useListStore = defineStore('lists', () => {
     isSyncing,
     lastSyncTime,
     loadListsFromLocal,
+    fetchItems,
     fetchLists,
     fetchCategories,
     createList,

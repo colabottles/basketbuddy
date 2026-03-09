@@ -774,6 +774,7 @@ const loadListData = async () => {
     }
 
     await listStore.fetchLists?.()
+    await listStore.fetchItems?.(listId.value)
     await listStore.fetchCategories?.(listId.value)
   } catch (error) {
     console.error('Error loading list:', error)
