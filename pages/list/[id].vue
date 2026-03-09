@@ -1,5 +1,12 @@
 <template>
   <div class="app-container">
+    <div
+      class="pull-indicator"
+      :style="{ transform: `translateY(${pullDistance}px)`, opacity: pullDistance / THRESHOLD }"
+      aria-hidden="true">
+      <span v-if="refreshing" class="pull-spinner"></span>
+      <span v-else>↓</span>
+    </div>
     <header class="app-header">
       <div class="container">
         <div class="header-content">
@@ -667,13 +674,13 @@ import Sortable from 'sortablejs'
 import type { Category, GroceryItem } from '~/types/models'
 import { clearAllData } from '~/utils/indexedDB'
 import { getList } from '~/utils/indexedDB'
+import { usePullToRefresh } from '~/composables/usePullToRefresh'
 
 definePageMeta({
   middleware: 'auth'
 })
 
 const colorPalette = [
-  { name: 'Purple', value: '#7c3aed', contrast: 'white' },
   { name: 'Blue', value: '#2563eb', contrast: 'white' },
   { name: 'Green', value: '#059669', contrast: 'white' },
   { name: 'Red', value: '#dc2626', contrast: 'white' },
@@ -1247,6 +1254,11 @@ watch(showShareDialog, (show) => {
       shareLinkInput.value?.select()
     })
   }
+})
+
+const { pullDistance, refreshing, THRESHOLD } = usePullToRefresh(async () => {
+  await listStore.fetchLists?.()
+  await listStore.fetchCategories?.(listId.value)
 })
 
 const handleLogout = async () => {
@@ -2307,6 +2319,34 @@ useHead({
 .notification-text {
   margin: 0;
   font-size: var(--font-size-base);
+}
+
+.pull-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  z-index: 999;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+.pull-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 @media (max-width: 768px) {

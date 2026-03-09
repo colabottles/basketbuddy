@@ -2,6 +2,23 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 
+  // nuxt.config.ts
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/manifest.json' },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#4f46e5' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'apple-mobile-web-app-title', content: 'BasketBuddy' },
+      ]
+    }
+  },
+
   // Disable SSR for client-side PWA
   ssr: false,
 
