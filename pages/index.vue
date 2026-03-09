@@ -381,6 +381,7 @@ const shareLinkInput = ref<HTMLInputElement | null>(null)
 const linkCopied = ref(false)
 
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
+const pendingInvitations = ref<any[]>([])
 
 onMounted(async () => {
   await loadAvatar()
@@ -575,22 +576,6 @@ const copyShareLink = async () => {
     shareLinkInput.value?.select()
   }
 }
-
-const pendingInvitations = ref<any[]>([])
-
-onMounted(async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  console.log('Current user:', user)
-
-  isLoading.value = true
-  await listStore.fetchLists?.()
-
-  // Load pending invitations
-  const invites = await listStore.getPendingInvitations?.()
-  pendingInvitations.value = invites || []
-
-  isLoading.value = false
-})
 
 const acceptInvitation = async (listId: string, listName: string) => {
   try {
