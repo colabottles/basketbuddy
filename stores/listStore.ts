@@ -861,7 +861,7 @@ export const useListStore = defineStore('lists', () => {
         .from('list_shares')
         .select('*')
         .eq('list_id', listId)
-        .or(`invited_email.eq.${email.toLowerCase()},user_id.eq.${session.user.id}`)
+        .eq('invited_email', email.toLowerCase())
         .maybeSingle()
 
       if (existingShare) {
