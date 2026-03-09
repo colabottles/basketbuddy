@@ -87,7 +87,7 @@
                     Updated {{ formatDate(list.updated_at) }}
                   </p>
                 </div>
-                <div class="list-actions">
+                <!-- <div class="list-actions">
                   <button
                     @click="router.push(`/list/${list.id}`)"
                     class="button-action button-edit"
@@ -165,6 +165,41 @@
                     </svg>
                     <span class="action-text">Delete</span>
                   </button>
+                </div> -->
+
+                <div class="list-actions">
+                  <div class="list-actions-row">
+                    <button
+                      @click="router.push(`/list/${list.id}`)"
+                      class="button-action button-edit"
+                      :aria-label="`Edit ${list.name}`">
+                      <svg>...</svg>
+                      <span class="action-text">Edit</span>
+                    </button>
+                    <button
+                      @click="openRenameDialog(list)"
+                      class="button-action button-rename"
+                      :aria-label="`Rename ${list.name}`">
+                      <svg>...</svg>
+                      <span class="action-text">Rename</span>
+                    </button>
+                  </div>
+                  <div class="list-actions-row">
+                    <button
+                      @click="openShareDialog(list)"
+                      class="button-action button-share"
+                      :aria-label="`Share ${list.name}`">
+                      <svg>...</svg>
+                      <span class="action-text">Share</span>
+                    </button>
+                    <button
+                      @click="confirmDelete(list)"
+                      class="button-action button-danger"
+                      :aria-label="`Delete ${list.name}`">
+                      <svg>...</svg>
+                      <span class="action-text">Delete</span>
+                    </button>
+                  </div>
                 </div>
               </li>
             </ul>
@@ -769,156 +804,166 @@ useHead({
 }
 
 .list-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 4px;
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
 }
 
-  .button-icon {
-    min-width: var(--min-touch-target);
-    min-height: var(--min-touch-target);
-    padding: var(--spacing-xs);
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: var(--font-size-2xl);
-    line-height: 1;
-    color: var(--color-text-secondary);
-    border-radius: 0.25rem;
-  }
+.list-actions-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
 
-  .button-icon:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
+.list-actions-row .button-action {
+  flex: 1;
+}
 
-  .button-danger {
-    color: var(--color-danger);
-  }
+.button-icon {
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-xs);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  color: var(--color-text-secondary);
+  border-radius: 0.25rem;
+}
 
-  .button-danger:hover {
-    background-color: rgba(220, 38, 38, 0.1);
-  }
+.button-icon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
 
-  .button-action {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-height: 52px;
-    padding: var(--spacing-xs) 2px;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: #10b981;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 0.375rem;
-    min-width: 0;
-  }
+.button-danger {
+  color: var(--color-danger);
+}
 
-  .button-action:hover {
-    background-color: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
-    color: #34d399;
-  }
+.button-danger:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
 
-  .button-action.button-danger {
-    color: #f87171;
-    border-color: var(--color-border);
-  }
+.button-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--spacing-xs) 2px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: #10b981;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.375rem;
+  min-width: 0;
+}
 
-  .button-action.button-danger:hover {
-    background-color: rgba(248, 113, 113, 0.1);
-    border-color: #f87171;
-    color: #fca5a5;
-  }
+.button-action:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #34d399;
+}
 
-  .button-action.button-share {
-    color: #3b82f6;
-    border-color: var(--color-border);
-  }
+.button-action.button-danger {
+  color: #f87171;
+  border-color: var(--color-border);
+}
 
-  .button-action.button-share:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-    border-color: #3b82f6;
-    color: #60a5fa;
-  }
+.button-action.button-danger:hover {
+  background-color: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+  color: #fca5a5;
+}
 
-  .button-action.button-edit {
-    color: #f59e0b;
-    border-color: var(--color-border);
-  }
+.button-action.button-share {
+  color: #3b82f6;
+  border-color: var(--color-border);
+}
 
-  .button-action.button-edit:hover {
-    background-color: rgba(245, 158, 11, 0.1);
-    border-color: #f59e0b;
-    color: #fbbf24;
-  }
+.button-action.button-share:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
 
-  .button-action.button-rename {
-    color: #10b981;
-    border-color: var(--color-border);
-  }
+.button-action.button-edit {
+  color: #f59e0b;
+  border-color: var(--color-border);
+}
 
-  .button-action.button-rename:hover {
-    background-color: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
-    color: #34d399;
-  }
+.button-action.button-edit:hover {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
 
-  .button-action:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
+.button-action.button-rename {
+  color: #10b981;
+  border-color: var(--color-border);
+}
 
-  .button-action svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
+.button-action.button-rename:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #34d399;
+}
 
-  .action-text {
-    font-size: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
+.button-action:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
 
-  .button-delete {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    min-width: 60px;
-    min-height: 60px;
-    padding: var(--spacing-xs);
-    background: transparent;
-    border: none;
-    color: var(--color-danger);
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 0.375rem;
-  }
+.button-action svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
 
-  .button-delete:hover {
-    background-color: rgba(220, 38, 38, 0.1);
-    color: #b91c1c;
-  }
+.action-text {
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
-  .button-delete:focus-visible {
-    outline: 2px solid var(--color-danger);
-    outline-offset: 2px;
-  }
+.button-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: 60px;
+  min-height: 60px;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.375rem;
+}
 
-  .button-delete svg {
-    flex-shrink: 0;
-  }
+.button-delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.button-delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.button-delete svg {
+  flex-shrink: 0;
+}
 
 .delete-text {
   font-size: var(--font-size-xs);
