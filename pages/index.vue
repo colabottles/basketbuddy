@@ -631,7 +631,7 @@ useHead({
 })
 </script>
 
-<style>
+<style scoped>
 .app-container {
   min-height: 100vh;
   display: flex;
@@ -794,16 +794,7 @@ useHead({
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-.button-danger {
-  color: var(--color-danger);
-}
-
-.button-danger:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-}
-
 .button-action {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -818,34 +809,13 @@ useHead({
   transition: all 0.2s;
   border-radius: 0.375rem;
   min-width: 0;
+  width: 100%;
 }
 
 .button-action:hover {
   background-color: rgba(16, 185, 129, 0.1);
   border-color: #10b981;
   color: #34d399;
-}
-
-.button-action.button-danger {
-  color: #f87171;
-  border-color: var(--color-border);
-}
-
-.button-action.button-danger:hover {
-  background-color: rgba(248, 113, 113, 0.1);
-  border-color: #f87171;
-  color: #fca5a5;
-}
-
-.button-action.button-share {
-  color: #3b82f6;
-  border-color: var(--color-border);
-}
-
-.button-action.button-share:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
-  color: #60a5fa;
 }
 
 .button-action.button-edit {
@@ -868,6 +838,32 @@ useHead({
   background-color: rgba(16, 185, 129, 0.1);
   border-color: #10b981;
   color: #34d399;
+}
+
+.button-action.button-share {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  border-color: var(--color-border);
+}
+
+.button-action.button-share:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.button-action.button-danger {
+  color: #f87171;
+  border-color: var(--color-border);
+}
+
+.button-action.button-danger:hover {
+  background-color: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+  color: #fca5a5;
 }
 
 .button-action:focus-visible {
@@ -1291,25 +1287,6 @@ useHead({
 
   .list-card {
     padding: var(--spacing-sm);
-  }
-
-  .button-action {
-    flex: unset;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-height: 52px;
-    padding: var(--spacing-xs) 2px;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: #10b981;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 0.375rem;
-    min-width: 0;
   }
 
   .button-action svg {
