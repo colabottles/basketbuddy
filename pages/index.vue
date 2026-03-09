@@ -7,14 +7,12 @@
           <div class="header-actions">
             <button
               @click="router.push('/rewards')"
-              class="button button-secondary"
-              aria-label="Manage rewards cards">
+              class="button button-secondary">
               Rewards
             </button>
             <button
               @click="router.push('/settings')"
-              class="button button-secondary"
-              aria-label="Account settings">
+              class="button button-secondary">
               Settings
             </button>
             <div class="header-avatar-container">
@@ -30,8 +28,7 @@
             <button
               @click="handleLogout"
               class="button button-secondary"
-              :disabled="isLoggingOut"
-              aria-label="Sign out of your account">
+              :disabled="isLoggingOut">
               <span v-if="isLoggingOut">Signing out...</span>
               <span v-else>Sign Out</span>
             </button>
@@ -85,6 +82,7 @@
             <ul class="lists-grid" role="list">
               <li v-for="list in listStore.lists" :key="list.id" class="list-card">
                 <div class="list-card-body">
+                  <p class="list-card-label" aria-hidden="true">Create / Edit List</p>
                   <h3 class="list-name">{{ list.name }}</h3>
                   <p class="list-meta">
                     Updated {{ formatDate(list.updated_at) }}
@@ -484,6 +482,7 @@ useHead({
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -498,18 +497,29 @@ useHead({
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+  box-sizing: border-box;
 }
 
 .app-title {
   font-size: var(--font-size-xl);
   font-weight: 700;
   margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
+  white-space: nowrap;
 }
 
 .offline-badge {
@@ -576,11 +586,13 @@ useHead({
 
 .lists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: var(--spacing-md);
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .list-card {
@@ -592,12 +604,17 @@ useHead({
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 .list-actions {
   display: flex;
   gap: var(--spacing-sm);
   margin-top: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .list-card-body {
@@ -972,8 +989,16 @@ useHead({
     font-size: var(--font-size-lg);
   }
 
-  .header-actions {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-sm);
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--spacing-xs);
   }
 
   .section-header {
@@ -990,6 +1015,19 @@ useHead({
     grid-template-columns: 1fr;
   }
 
+  .list-card {
+    padding: var(--spacing-md);
+  }
+
+  .button-action {
+    min-height: 52px;
+    font-size: var(--font-size-xs);
+  }
+
+  .action-text {
+    font-size: 0.625rem;
+  }
+
   .invitations-section {
     padding: var(--spacing-sm);
   }
@@ -1002,6 +1040,8 @@ useHead({
   .dialog {
     margin: var(--spacing-sm);
     padding: var(--spacing-md);
+    max-width: calc(100vw - 2rem);
+    box-sizing: border-box;
   }
 }
 

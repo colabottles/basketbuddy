@@ -90,9 +90,43 @@
               </button>
             </div>
             <h3 class="card-name">{{ card.retailer_name }}</h3>
-            <div v-if="card.card_number" class="card-number">
-              •••• {{ card.card_number.slice(-4) }}
-            </div>
+            <button
+              v-if="card.card_number"
+              @click="toggleReveal(card.id)"
+              class="card-number-toggle"
+              :aria-label="revealedCards.has(card.id)
+                ? `Hide card number for ${card.retailer_name}`
+                : `Show full card number for ${card.retailer_name}`"
+              :aria-pressed="revealedCards.has(card.id)">
+              <span aria-hidden="true">
+                {{ revealedCards.has(card.id) ? card.card_number : `••••
+                ${card.card_number.slice(-4)}` }}
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <template v-if="revealedCards.has(card.id)">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94">
+                  </path>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19">
+                  </path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </template>
+                <template v-else>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </template>
+              </svg>
+            </button>
             <div class="card-status">
               <span v-if="card.card_number" class="status-badge status-linked has-number">✓ Card
                 saved</span>
@@ -104,13 +138,8 @@
     </main>
 
     <!-- Add Card Dialog -->
-    <div
-      v-if="showAddCardDialog"
-      class="dialog-overlay"
-      @click="closeAddCardDialog"
-      role="dialog"
-      aria-labelledby="add-card-title"
-      aria-modal="true">
+    <div v-if="showAddCardDialog" class="dialog-overlay" @click="closeAddCardDialog" role="dialog"
+      aria-labelledby="add-card-title" aria-modal="true">
       <div class="dialog dialog-large" @click.stop>
         <h2 id="add-card-title" class="dialog-title">Add Rewards Card</h2>
 
@@ -119,27 +148,21 @@
           <p class="dialog-description">Choose a popular retailer or add a custom card</p>
 
           <div class="retailers-grid">
-            <button
-              v-for="retailer in POPULAR_RETAILERS"
-              :key="retailer.name"
-              @click="selectedRetailer = retailer"
-              class="retailer-button">
+            <button v-for="retailer in POPULAR_RETAILERS" :key="retailer.name"
+              @click="selectedRetailer = retailer" class="retailer-button">
               <span class="retailer-logo">{{ retailer.logo }}</span>
               <span class="retailer-name">{{ retailer.name }}</span>
             </button>
           </div>
 
-          <button
-            @click="showCustomForm = true"
-            class="button button-secondary button-full">
+          <button @click="showCustomForm = true" class="button button-secondary button-full">
             Add Custom Card
           </button>
         </div>
 
         <!-- Step 2a: Card number for popular retailer -->
         <div v-else-if="selectedRetailer">
-          <button
-            @click="selectedRetailer = null"
+          <button @click="selectedRetailer = null"
             class="button button-secondary button-small back-button">
             ← Back
           </button>
@@ -152,26 +175,16 @@
               <label for="retailer-card-number" class="form-label">
                 Card Number <span class="label-optional">(optional)</span>
               </label>
-              <input
-                id="retailer-card-number"
-                v-model="customCardNumber"
-                type="text"
-                class="input"
+              <input id="retailer-card-number" v-model="customCardNumber" type="text" class="input"
                 placeholder="Enter your card number" />
               <p class="form-hint">You can find this on the back of your physical card or in the
                 retailer's app.</p>
             </div>
             <div class="dialog-actions">
-              <button
-                type="button"
-                @click="closeAddCardDialog"
-                class="button button-secondary">
+              <button type="button" @click="closeAddCardDialog" class="button button-secondary">
                 Cancel
               </button>
-              <button
-                type="submit"
-                class="button button-primary"
-                :disabled="isAddingCard">
+              <button type="submit" class="button button-primary" :disabled="isAddingCard">
                 {{ isAddingCard ? 'Adding...' : 'Add Card' }}
               </button>
             </div>
@@ -180,8 +193,7 @@
 
         <!-- Step 2b: Custom card form -->
         <div v-else>
-          <button
-            @click="showCustomForm = false"
+          <button @click="showCustomForm = false"
             class="button button-secondary button-small back-button">
             ← Back
           </button>
@@ -192,39 +204,25 @@
                 Retailer Name
                 <span aria-hidden="true">*</span>
               </label>
-              <input
-                id="custom-retailer"
-                v-model="customRetailerName"
-                type="text"
-                class="input"
-                required
-                placeholder="e.g., Local Market" />
+              <input id="custom-retailer" v-model="customRetailerName" type="text" class="input"
+                required placeholder="e.g., Local Market" />
             </div>
 
             <div class="form-group">
               <label for="custom-card-number" class="form-label">
                 Card Number <span class="label-optional">(optional)</span>
               </label>
-              <input
-                id="custom-card-number"
-                v-model="customCardNumber"
-                type="text"
-                class="input"
+              <input id="custom-card-number" v-model="customCardNumber" type="text" class="input"
                 placeholder="Enter your card number" />
               <p class="form-hint">You can find this on the back of your physical card or in the
                 retailer's app.</p>
             </div>
 
             <div class="dialog-actions">
-              <button
-                type="button"
-                @click="closeAddCardDialog"
-                class="button button-secondary">
+              <button type="button" @click="closeAddCardDialog" class="button button-secondary">
                 Cancel
               </button>
-              <button
-                type="submit"
-                class="button button-primary"
+              <button type="submit" class="button button-primary"
                 :disabled="!customRetailerName.trim() || isAddingCard">
                 {{ isAddingCard ? 'Adding...' : 'Add Card' }}
               </button>
@@ -233,10 +231,7 @@
         </div>
 
         <div v-if="!selectedRetailer && !showCustomForm" class="dialog-actions">
-          <button
-            type="button"
-            @click="closeAddCardDialog"
-            class="button button-secondary">
+          <button type="button" @click="closeAddCardDialog" class="button button-secondary">
             Cancel
           </button>
         </div>
@@ -244,13 +239,8 @@
     </div>
 
     <!-- Delete Confirmation Dialog -->
-    <div
-      v-if="cardToDelete"
-      class="dialog-overlay"
-      @click="cancelDeleteCard"
-      role="alertdialog"
-      aria-labelledby="delete-card-title"
-      aria-describedby="delete-card-description"
+    <div v-if="cardToDelete" class="dialog-overlay" @click="cancelDeleteCard" role="alertdialog"
+      aria-labelledby="delete-card-title" aria-describedby="delete-card-description"
       aria-modal="true">
       <div class="dialog" @click.stop>
         <h2 id="delete-card-title" class="dialog-title">Delete Card?</h2>
@@ -258,16 +248,10 @@
           Are you sure you want to delete your {{ cardToDelete.retailer_name }} rewards card?
         </p>
         <div class="dialog-actions">
-          <button
-            type="button"
-            @click="cancelDeleteCard"
-            class="button button-secondary">
+          <button type="button" @click="cancelDeleteCard" class="button button-secondary">
             Cancel
           </button>
-          <button
-            @click="handleDeleteCard"
-            class="button button-danger"
-            :disabled="isDeletingCard">
+          <button @click="handleDeleteCard" class="button button-danger" :disabled="isDeletingCard">
             {{ isDeletingCard ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
@@ -279,8 +263,8 @@
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
-              class="heart">❤️</span> by <a href="https://toddl.dev"
-              target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
+              class="heart">❤️</span> by <a href="https://toddl.dev" target="_blank"
+              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
           <p class="footer-text">Built with accessibility in mind. Support on <a
               href="https://github.com/colabottles/basketbuddy" target="_blank"
               rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
@@ -362,6 +346,14 @@ const handleAddCustomCard = async () => {
   } finally {
     isAddingCard.value = false
   }
+}
+
+const revealedCards = ref<Set<string>>(new Set())
+
+const toggleReveal = (cardId: string) => {
+  const next = new Set(revealedCards.value)
+  next.has(cardId) ? next.delete(cardId) : next.add(cardId)
+  revealedCards.value = next
 }
 
 const confirmDeleteCard = (card: RewardsCard) => {
@@ -583,11 +575,32 @@ useHead({
   color: var(--color-text);
 }
 
-.card-number {
+.card-number-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   font-family: monospace;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   letter-spacing: 0.1em;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0.125rem var(--spacing-xs);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.card-number-toggle:hover {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.card-number-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .card-status {
