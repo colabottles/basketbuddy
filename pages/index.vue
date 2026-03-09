@@ -760,7 +760,7 @@ useHead({
 
 .list-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
@@ -818,15 +818,16 @@ useHead({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  min-height: 60px;
-  padding: var(--spacing-xs);
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--spacing-xs) 2px;
   background: transparent;
   border: 1px solid var(--color-border);
   color: #10b981;
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 0.375rem;
+  min-width: 0;
 }
 
 .button-action:hover {
@@ -874,14 +875,17 @@ useHead({
 }
 
 .button-action svg {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
 .action-text {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 @media (max-width: 640px) {
