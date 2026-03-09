@@ -123,6 +123,7 @@
                     </svg>
                     <span class="action-text">Rename</span>
                   </button>
+                  <span style="color:red;font-size:20px;">DEBUG</span>
                   <button
                     @click="openShareDialog(list)"
                     style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:52px; width:100%; background:transparent; border:1px solid #3b82f6; color:#3b82f6; cursor:pointer; border-radius:0.375rem;"
