@@ -520,25 +520,25 @@
       class="dialog-overlay"
       @click="closeShareDialog"
       role="dialog"
-      aria-labelledby="share-title"
+      aria-labelledby="collab-title"
       aria-modal="true">
       <div class="dialog dialog-large" @click.stop>
-        <h2 id="share-title" class="dialog-title">Share List</h2>
+        <h2 id="collab-title" class="dialog-title">Share List</h2>
         <p class="dialog-description">
           Invite others to view or edit this list with you.
         </p>
 
         <!-- Share Form -->
-        <div class="share-form">
-          <h3 class="share-subtitle">Invite by Email</h3>
-          <div class="share-input-group">
+        <div class="collab-form">
+          <h3 class="collab-subtitle">Invite by Email</h3>
+          <div class="collab-input-group">
             <input
               v-model="shareEmail"
               type="email"
               class="input"
               placeholder="Enter email address"
               @keyup.enter="handleShareList" />
-            <select v-model="sharePermission" class="input share-permission-select">
+            <select v-model="sharePermission" class="input collab-permission-select">
               <option value="edit">Can Edit</option>
               <option value="view">Can View</option>
             </select>
@@ -553,20 +553,20 @@
 
         <!-- Current Shares -->
         <div v-if="listShares.length > 0" class="shares-list">
-          <h3 class="share-subtitle">People with Access</h3>
+          <h3 class="collab-subtitle">People with Access</h3>
           <div v-if="isLoadingShares" class="loading-shares">
             <div class="spinner-small"></div>
             <span>Loading...</span>
           </div>
           <ul v-else class="shares-items">
-            <li v-for="share in listShares" :key="share.id" class="share-item">
-              <div class="share-info">
-                <span class="share-email">{{ share.invited_email || share.email || 'Unknown user'
+            <li v-for="share in listShares" :key="share.id" class="collab-item">
+              <div class="collab-info">
+                <span class="collab-email">{{ share.invited_email || share.email || 'Unknown user'
                   }}</span>
-                <span class="share-permission">
+                <span class="collab-permission">
                   {{ share.permission_level === 'edit' ? 'Can Edit' : 'Can View' }}
                 </span>
-                <span v-if="!share.user_id" class="share-pending">Pending</span>
+                <span v-if="!share.user_id" class="collab-pending">Pending</span>
               </div>
               <button
                 @click="handleRemoveShare(share.id, share.invited_email)"
@@ -579,9 +579,9 @@
         </div>
 
         <!-- Share Link -->
-        <div class="share-section">
-          <h3 class="share-subtitle">Share Link</h3>
-          <div class="share-link-group">
+        <div class="collab-section">
+          <h3 class="collab-subtitle">Share Link</h3>
+          <div class="collab-link-group">
             <input
               ref="shareLinkInput"
               :value="shareLink"
@@ -2075,31 +2075,31 @@ useHead({
   max-width: 600px;
 }
 
-.share-form {
+.collab-form {
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
 }
 
-.share-subtitle {
+.collab-subtitle {
   font-size: var(--font-size-base);
   font-weight: 600;
   margin: 0 0 var(--spacing-sm) 0;
   color: var(--color-text);
 }
 
-.share-input-group {
+.collab-input-group {
   display: flex;
   gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
-.share-input-group .input {
+.collab-input-group .input {
   flex: 1;
   min-width: 200px;
 }
 
-.share-permission-select {
+.collab-permission-select {
   min-width: 120px;
   flex-shrink: 0;
 }
@@ -2136,7 +2136,7 @@ useHead({
   gap: var(--spacing-sm);
 }
 
-.share-item {
+.collab-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2146,24 +2146,24 @@ useHead({
   gap: var(--spacing-md);
 }
 
-.share-info {
+.collab-info {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   flex: 1;
 }
 
-.share-email {
+.collab-email {
   font-weight: 500;
   color: var(--color-text);
 }
 
-.share-permission {
+.collab-permission {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
-.share-pending {
+.collab-pending {
   display: inline-block;
   padding: 2px 8px;
   background-color: #fbbf24;
@@ -2174,12 +2174,12 @@ useHead({
 }
 
 @media (max-width: 640px) {
-  .share-input-group {
+  .collab-input-group {
     flex-direction: column;
   }
 
-  .share-input-group .input,
-  .share-permission-select {
+  .collab-input-group .input,
+  .collab-permission-select {
     width: 100%;
   }
 }
@@ -2237,11 +2237,11 @@ useHead({
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.share-section {
+.collab-section {
   margin-bottom: var(--spacing-lg);
 }
 
-.share-link-group {
+.collab-link-group {
   display: flex;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
@@ -2522,12 +2522,12 @@ useHead({
     max-width: calc(100vw - var(--spacing-lg));
   }
 
-  .share-input-group {
+  .collab-input-group {
     flex-direction: column;
   }
 
-  .share-input-group .input,
-  .share-permission-select {
+  .collab-input-group .input,
+  .collab-permission-select {
     width: 100%;
   }
 
