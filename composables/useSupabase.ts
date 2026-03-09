@@ -17,7 +17,8 @@ export const useSupabase = (): SupabaseClient<Database> => {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storageKey: 'basketbuddy-auth'
       },
       realtime: {
         params: {
@@ -26,6 +27,21 @@ export const useSupabase = (): SupabaseClient<Database> => {
       }
     }
   )
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' && !session) {
+      // Only redirect to login if we're not already there
+      if (process.client && !window.location.pathname.includes('/login')) {
+        // Clear any stale tokens and redirect
+        supabaseClient?.auth.signOut()
+        window.location.href = '/login'
+      }
+    }
+
+    if (event === 'TOKEN_REFRESHED') {
+      console.log('Token refreshed successfully')
+    }
+  })
 
   return supabaseClient
 }
