@@ -130,15 +130,6 @@ body {
 }
 
 /* ===========================
-   disable the browser's native overscroll on iOS
-   =========================== */
-html,
-body {
-  overscroll-behavior-y: none;
-}
-
-
-/* ===========================
    Focus Styles
    =========================== */
 :focus-visible {
