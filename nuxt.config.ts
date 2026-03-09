@@ -70,6 +70,9 @@ export default defineNuxtConfig({
       skipWaiting: true,
       clientsClaim: true,
       navigateFallback: '/',
+      additionalManifestEntries: [
+        { url: '/', revision: null }
+      ],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       runtimeCaching: [
         {
