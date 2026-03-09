@@ -123,11 +123,10 @@
                     </svg>
                     <span class="action-text">Rename</span>
                   </button>
-                  <a href="#"
-                    @click.prevent="openShareDialog(list)"
-                    class="button-action button-share"
-                    :aria-label="`Share ${list.name}`"
-                    role="button">
+                  <button
+                    @click="openShareDialog(list)"
+                    class="button-action button-collab"
+                    :aria-label="`Share ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -144,7 +143,7 @@
                       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                     </svg>
                     <span class="action-text">Share</span>
-                  </a>
+                  </button>
                   <button
                     @click="confirmDelete(list)"
                     class="button-action button-danger"
@@ -848,12 +847,12 @@ useHead({
   color: #fca5a5;
 }
 
-.button-action.button-share {
+.button-action.button-collab {
   color: #3b82f6;
   border-color: var(--color-border);
 }
 
-.button-action.button-share:hover {
+.button-action.button-collab:hover {
   background-color: rgba(59, 130, 246, 0.1);
   border-color: #3b82f6;
   color: #60a5fa;
