@@ -71,28 +71,7 @@ export default defineNuxtConfig({
       skipWaiting: true,
       clientsClaim: true,
       navigateFallback: '/',
-      additionalManifestEntries: [
-        { url: '/', revision: null }
-      ],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      navigateFallbackDenylist: [/^\/api\//],
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/.*/i,
-          handler: 'NetworkOnly',  // Never cache auth endpoints
-        },
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'supabase-cache',
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 5
-            }
-          }
-        }
-      ]
     }
   },
 
