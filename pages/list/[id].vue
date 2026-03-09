@@ -592,30 +592,6 @@
           </p>
         </div>
 
-        <!-- Image Viewer Modal -->
-        <div
-          v-if="viewingImage"
-          class="image-viewer-overlay"
-          @click="closeImageViewer"
-          role="dialog"
-          aria-labelledby="image-viewer-title"
-          aria-modal="true">
-          <div class="image-viewer-content" @click.stop>
-            <div class="image-viewer-header">
-              <h2 id="image-viewer-title" class="image-viewer-title">{{ viewingImageAlt }}</h2>
-              <button
-                @click="closeImageViewer"
-                class="image-viewer-close"
-                aria-label="Close image viewer">
-                ×
-              </button>
-            </div>
-            <div class="image-viewer-body">
-              <img :src="viewingImage" :alt="viewingImageAlt" />
-            </div>
-          </div>
-        </div>
-
         <div class="dialog-actions">
           <button
             type="button"
@@ -623,6 +599,30 @@
             class="button button-secondary">
             Done
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Viewer Modal (outside all other dialogs to avoid z-index issues) -->
+    <div
+      v-if="viewingImage"
+      class="image-viewer-overlay"
+      @click="closeImageViewer"
+      role="dialog"
+      aria-labelledby="image-viewer-title"
+      aria-modal="true">
+      <div class="image-viewer-content" @click.stop>
+        <div class="image-viewer-header">
+          <h2 id="image-viewer-title" class="image-viewer-title">{{ viewingImageAlt }}</h2>
+          <button
+            @click="closeImageViewer"
+            class="image-viewer-close"
+            aria-label="Close image viewer">
+            ×
+          </button>
+        </div>
+        <div class="image-viewer-body">
+          <img :src="viewingImage" :alt="viewingImageAlt" />
         </div>
       </div>
     </div>
@@ -798,11 +798,9 @@ const handleShareList = async () => {
 
   isSharingList.value = true
   try {
-    // Call your store to add the share
     const newShare = await listStore.shareList?.(listId.value, email, sharePermission.value)
 
     if (newShare) {
-      // Add it directly to listShares.value
       listShares.value.push(newShare)
     }
 
@@ -823,10 +821,7 @@ const handleRemoveShare = async (shareId: string, email: string) => {
 
   try {
     await listStore.removeShare?.(shareId)
-
-    // Remove it from listShares.value directly
     listShares.value = listShares.value.filter(share => share.id !== shareId)
-
     showNotification('Access removed')
   } catch (error) {
     console.error('Error removing share:', error)
@@ -1011,7 +1006,6 @@ const handleAddItem = async () => {
       await listStore.updateItemCategory?.(newItem.id, categoryToAssign)
     }
 
-    // Upload image if one was selected
     if (newItemImage.value && newItem) {
       await listStore.updateItemImage?.(newItem.id, newItemImage.value)
     }
@@ -1289,6 +1283,7 @@ useHead({
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -1304,6 +1299,7 @@ useHead({
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .button-icon-only {
@@ -1336,7 +1332,6 @@ useHead({
 
 .button-danger:hover {
   background-color: #b91c1c;
-  /* Darker red on hover */
 }
 
 .button-danger:disabled {
@@ -1358,6 +1353,7 @@ useHead({
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .offline-badge {
@@ -1375,18 +1371,6 @@ useHead({
 
 .button-secondary:hover {
   background-color: rgba(255, 255, 255, 0.3);
-}
-
-.export-menu-item:hover {
-  background-color: var(--color-surface);
-}
-
-.export-menu-item:first-child {
-  border-radius: 0.5rem 0.5rem 0 0;
-}
-
-.export-menu-item:last-child {
-  border-radius: 0 0 0.5rem 0.5rem;
 }
 
 .main-content {
@@ -2235,13 +2219,6 @@ useHead({
   margin-bottom: var(--spacing-lg);
 }
 
-.share-subtitle {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--color-text);
-}
-
 .share-link-group {
   display: flex;
   gap: var(--spacing-sm);
@@ -2382,18 +2359,36 @@ useHead({
 
 /* Mobile optimizations */
 @media (max-width: 640px) {
+  .container {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    box-sizing: border-box;
+  }
+
   .app-title {
-    font-size: var(--font-size-base);
-    max-width: 150px;
+    font-size: var(--font-size-lg);
+    max-width: calc(100vw - 80px);
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
   }
 
   .header-actions {
+    width: 100%;
+    justify-content: flex-start;
     gap: var(--spacing-xs);
   }
 
   .header-actions .button {
-    padding: 0 var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-xs);
+  }
+
+  .section-header {
+    flex-wrap: wrap;
   }
 
   .button-icon-only {
