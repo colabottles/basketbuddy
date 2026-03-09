@@ -2016,6 +2016,7 @@ useHead({
 
 .items-summary {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-md);
@@ -2023,6 +2024,11 @@ useHead({
   padding: var(--spacing-md);
   background-color: var(--color-surface);
   border-radius: 0.5rem;
+}
+
+.items-summary .button {
+  width: auto;
+  flex-shrink: 0;
 }
 
 .summary-text {
@@ -2408,26 +2414,29 @@ useHead({
     box-sizing: border-box;
   }
 
-  .app-title {
-    font-size: var(--font-size-lg);
-    max-width: calc(100vw - 80px);
-  }
-
   .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
   }
 
   .header-actions {
-    width: 100%;
-    justify-content: flex-start;
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-xs);
+    align-items: center;
   }
 
   .header-actions .button {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-xs);
+  }
+
+  .app-title {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-size-base);
   }
 
   .section-header {
@@ -2500,16 +2509,6 @@ useHead({
     min-width: 36px;
     min-height: 36px;
     font-size: var(--font-size-xl);
-  }
-
-  .items-summary {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
-
-  .items-summary .button {
-    width: 100%;
   }
 
   .dialog {
