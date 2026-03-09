@@ -110,7 +110,7 @@
                   </button>
                   <button
                     @click="openRenameDialog(list)"
-                    class="button-action"
+                    class="button-action button-rename"
                     :aria-label="`Rename ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -866,6 +866,17 @@ useHead({
   color: #fbbf24;
 }
 
+.button-action.button-rename {
+  color: #10b981;
+  border-color: var(--color-border);
+}
+
+.button-action.button-rename:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #34d399;
+}
+
 .button-action:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -1291,7 +1302,7 @@ useHead({
 
   .list-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 4px;
     margin-top: auto;
     width: 100%;
