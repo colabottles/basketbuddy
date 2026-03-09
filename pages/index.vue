@@ -1290,12 +1290,16 @@ useHead({
   }
 
   .list-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 4px;
   }
 
   .button-action {
     min-height: 48px;
     padding: 4px 2px;
+    flex: unset;
+    width: 100%;
   }
 
   .button-action svg {
