@@ -5,11 +5,17 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   const refreshing = ref(false)
   const THRESHOLD = 80
 
+  const getScrollTop = () => {
+    return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+  }
+
   const onTouchStart = (e: TouchEvent) => {
-    console.log('touchstart', window.scrollY, e.touches[0]?.clientY)
-    if (window.scrollY === 0 && e.touches[0]) {
+    console.log('touchstart fired', window.scrollY, document.documentElement.scrollTop)
+    const scrollTop = getScrollTop()
+    if (scrollTop <= 0 && e.touches[0]) {
       startY.value = e.touches[0].clientY
       pulling.value = true
+      console.log('pulling started at', startY.value)
     }
   }
 
