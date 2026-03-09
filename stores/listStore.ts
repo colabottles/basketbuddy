@@ -822,37 +822,34 @@ export const useListStore = defineStore('lists', () => {
   // Share list with user by email
   const shareList = async (listId: string, email: string, permissionLevel: 'view' | 'edit' = 'edit') => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('User not authenticated')
 
-      // Check if user is list owner
       const list = lists.value.find(l => l.id === listId)
-      if (!list || list.owner_id !== user.id) {
+      if (!list || list.owner_id !== session.user.id) {
         throw new Error('Only list owner can share')
       }
 
-      // Validate email
       if (!email || !email.includes('@')) {
         throw new Error('Invalid email address')
       }
 
-      // Check if already shared
+      // Use maybeSingle() — single() throws a 406 when no rows found
       const { data: existingShare } = await supabase
         .from('list_shares')
         .select('*')
         .eq('list_id', listId)
         .eq('invited_email', email.toLowerCase())
-        .single()
+        .maybeSingle()
 
       if (existingShare) {
         throw new Error('List already shared with this user')
       }
 
-      // Create share invitation
       const newShare = {
         id: uuidv4(),
         list_id: listId,
-        user_id: null,
+        user_id: session.user.id, // owner's ID, not null
         invited_email: email.toLowerCase(),
         permission_level: permissionLevel,
         invited_at: new Date().toISOString(),
@@ -863,7 +860,6 @@ export const useListStore = defineStore('lists', () => {
         .insert([newShare])
 
       if (error) throw error
-
       return newShare
     } catch (error) {
       console.error('Error sharing list:', error)
