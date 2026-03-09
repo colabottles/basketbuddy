@@ -777,8 +777,9 @@ useHead({
 }
 
 .list-actions {
-  display: flex;
-  gap: var(--spacing-xs);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
@@ -1298,15 +1299,6 @@ useHead({
 
   .list-card {
     padding: var(--spacing-sm);
-  }
-
-  .list-actions {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    margin-top: auto;
-    width: 100%;
-    box-sizing: border-box;
   }
 
   .button-action {
