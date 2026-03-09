@@ -1262,6 +1262,7 @@ watch(showShareDialog, (show) => {
 
 const { pullDistance, refreshing, THRESHOLD } = usePullToRefresh(async () => {
   await listStore.fetchLists?.()
+  await listStore.fetchItems?.(listId.value)
   await listStore.fetchCategories?.(listId.value)
 })
 

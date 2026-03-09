@@ -68,7 +68,6 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      cleanupOutdatedCaches: true,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
@@ -77,10 +76,7 @@ export default defineNuxtConfig({
             cacheName: 'supabase-cache',
             expiration: {
               maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24 // 24 hours
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
+              maxAgeSeconds: 60 * 5
             }
           }
         }

@@ -17,25 +17,27 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     const distance = e.touches[0].clientY - startY.value
     if (distance > 0) {
       pullDistance.value = Math.min(distance, THRESHOLD * 1.5)
+      // Prevent browser native pull-to-refresh
+      if (pullDistance.value > 10) {
+        e.preventDefault()
+      }
     }
   }
 
   const onTouchEnd = async () => {
     if (!pulling.value) return
     pulling.value = false
-
     if (pullDistance.value >= THRESHOLD && !refreshing.value) {
       refreshing.value = true
       await onRefresh()
       refreshing.value = false
     }
-
     pullDistance.value = 0
   }
 
   onMounted(() => {
     document.addEventListener('touchstart', onTouchStart, { passive: true })
-    document.addEventListener('touchmove', onTouchMove, { passive: true })
+    document.addEventListener('touchmove', onTouchMove, { passive: false }) // passive: false so we can preventDefault
     document.addEventListener('touchend', onTouchEnd)
   })
 
