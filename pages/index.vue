@@ -90,7 +90,7 @@
                 <div class="list-actions">
                   <button
                     @click="router.push(`/list/${list.id}`)"
-                    class="button-action"
+                    class="button-action button-edit"
                     :aria-label="`Edit ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -126,6 +126,29 @@
                       <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                     </svg>
                     <span class="action-text">Rename</span>
+                  </button>
+                  <button
+                    @click="openShareDialog(list)"
+                    class="button-action button-share"
+                    :aria-label="`Share ${list.name}`">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span class="action-text">Share</span>
                   </button>
                   <button
                     @click="confirmDelete(list)"
@@ -231,6 +254,75 @@
       </div>
     </div>
 
+    <!-- Share List Dialog -->
+    <div v-if="showShareDialog" class="dialog-overlay" @click="closeShareDialog" role="dialog"
+      aria-labelledby="share-title" aria-modal="true">
+      <div class="dialog dialog-large" @click.stop>
+        <h2 id="share-title" class="dialog-title">Share "{{ sharingList?.name }}"</h2>
+        <p class="dialog-description">
+          Invite others to view or edit this list with you.
+        </p>
+
+        <div class="share-form">
+          <h3 class="share-subtitle">Invite by Email</h3>
+          <div class="share-input-group">
+            <input v-model="shareEmail" type="email" class="input" placeholder="Enter email address"
+              @keyup.enter="handleShareList" />
+            <select v-model="sharePermission" class="input share-permission-select">
+              <option value="edit">Can Edit</option>
+              <option value="view">Can View</option>
+            </select>
+            <button @click="handleShareList" class="button button-primary"
+              :disabled="!shareEmail.trim() || isSharingList">
+              {{ isSharingList ? 'Sending...' : 'Send Invite' }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="listShares.length > 0" class="shares-list">
+          <h3 class="share-subtitle">People with Access</h3>
+          <div v-if="isLoadingShares" class="loading-shares">
+            <div class="spinner-small"></div>
+            <span>Loading...</span>
+          </div>
+          <ul v-else class="shares-items">
+            <li v-for="share in listShares" :key="share.id" class="share-item">
+              <div class="share-info">
+                <span class="share-email">{{ share.invited_email || 'User' }}</span>
+                <span class="share-permission-label">
+                  {{ share.permission_level === 'edit' ? 'Can Edit' : 'Can View' }}
+                </span>
+                <span v-if="!share.user_id" class="share-pending">Pending</span>
+              </div>
+              <button @click="handleRemoveShare(share.id, share.invited_email)"
+                class="button-icon button-danger"
+                :aria-label="`Remove access for ${share.invited_email}`">
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="share-section">
+          <h3 class="share-subtitle">Share Link</h3>
+          <div class="share-link-group">
+            <input ref="shareLinkInput" :value="shareLink" type="text" readonly class="input"
+              aria-label="Share link" />
+            <button @click="copyShareLink" class="button button-primary">
+              {{ linkCopied ? 'Copied!' : 'Copy' }}
+            </button>
+          </div>
+          <p class="help-text">Anyone with this link can view this list</p>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" @click="closeShareDialog" class="button button-secondary">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="isLoggingOut" class="logout-overlay">
       <div class="logout-spinner"></div>
       <p class="logout-text">Signing out...</p>
@@ -278,6 +370,15 @@ const listToRename = ref<GroceryList | null>(null)
 const isRenaming = ref(false)
 const isDeleting = ref(false)
 const isLoggingOut = ref(false)
+const showShareDialog = ref(false)
+const sharingList = ref<GroceryList | null>(null)
+const shareEmail = ref('')
+const sharePermission = ref<'view' | 'edit'>('edit')
+const isSharingList = ref(false)
+const listShares = ref<any[]>([])
+const isLoadingShares = ref(false)
+const shareLinkInput = ref<HTMLInputElement | null>(null)
+const linkCopied = ref(false)
 
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 
@@ -395,6 +496,85 @@ const handleRenameList = async () => {
     alert('Failed to rename list. Please try again.')
   } finally {
     isRenaming.value = false
+  }
+}
+
+const shareLink = computed(() => {
+  if (process.client && sharingList.value) {
+    return `${window.location.origin}/list/${sharingList.value.id}`
+  }
+  return ''
+})
+
+const openShareDialog = async (list: GroceryList) => {
+  sharingList.value = list
+  showShareDialog.value = true
+  isLoadingShares.value = true
+  try {
+    const shares = await listStore.getListShares?.(list.id)
+    listShares.value = shares || []
+  } catch (error) {
+    console.error('Error loading shares:', error)
+  } finally {
+    isLoadingShares.value = false
+  }
+}
+
+const closeShareDialog = () => {
+  showShareDialog.value = false
+  sharingList.value = null
+  shareEmail.value = ''
+  sharePermission.value = 'edit'
+  listShares.value = []
+  linkCopied.value = false
+}
+
+const handleShareList = async () => {
+  const email = shareEmail.value.trim()
+  if (!email || isSharingList.value || !sharingList.value) return
+
+  if (!email.includes('@')) {
+    alert('Please enter a valid email address')
+    return
+  }
+
+  isSharingList.value = true
+  try {
+    const newShare = await listStore.shareList?.(sharingList.value.id, email, sharePermission.value)
+    if (newShare) {
+      listShares.value.push(newShare)
+    }
+    shareEmail.value = ''
+    sharePermission.value = 'edit'
+  } catch (error: any) {
+    console.error('Error sharing list:', error)
+    alert(error.message || 'Failed to share list. Please try again.')
+  } finally {
+    isSharingList.value = false
+  }
+}
+
+const handleRemoveShare = async (shareId: string, email: string) => {
+  const confirmed = confirm(`Remove access for ${email}?`)
+  if (!confirmed) return
+
+  try {
+    await listStore.removeShare?.(shareId)
+    listShares.value = listShares.value.filter(s => s.id !== shareId)
+  } catch (error) {
+    console.error('Error removing share:', error)
+    alert('Failed to remove access. Please try again.')
+  }
+}
+
+const copyShareLink = async () => {
+  try {
+    await navigator.clipboard.writeText(shareLink.value)
+    linkCopied.value = true
+    setTimeout(() => { linkCopied.value = false }, 2000)
+  } catch (error) {
+    console.error('Error copying link:', error)
+    shareLinkInput.value?.select()
   }
 }
 
@@ -558,19 +738,6 @@ useHead({
   color: var(--color-text);
 }
 
-.list-card-label {
-  margin: 0 0 var(--spacing-xs) 0;
-  padding: 0.125rem var(--spacing-sm);
-  display: inline-block;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-primary);
-  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-radius: 0.25rem;
-}
-
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
@@ -696,6 +863,28 @@ useHead({
   color: #fca5a5;
 }
 
+.button-action.button-share {
+  color: #3b82f6;
+  border-color: var(--color-border);
+}
+
+.button-action.button-share:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.button-action.button-edit {
+  color: #f59e0b;
+  border-color: var(--color-border);
+}
+
+.button-action.button-edit:hover {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
 .button-action:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -760,6 +949,145 @@ useHead({
   justify-content: flex-end;
   gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
+}
+
+.dialog-large {
+  max-width: 600px;
+}
+
+.share-form {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.share-subtitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
+}
+
+.share-input-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.share-input-group .input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.share-permission-select {
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.shares-list {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.loading-shares {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.shares-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.share-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background-color: var(--color-surface);
+  border-radius: 0.375rem;
+  gap: var(--spacing-md);
+}
+
+.share-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.share-email {
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.share-permission-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.share-pending {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #fbbf24;
+  color: #78350f;
+  border-radius: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  width: fit-content;
+}
+
+.share-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.share-link-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.help-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.button-icon {
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-xs);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  color: var(--color-text-secondary);
+  border-radius: 0.25rem;
 }
 
 .delete-button {

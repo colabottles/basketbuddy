@@ -15,6 +15,12 @@
               Offline
             </span>
             <button
+              @click="showShareDialog = true"
+              class="button button-secondary"
+              aria-label="Share this list">
+              Share
+            </button>
+            <button
               @click="router.push('/rewards')"
               class="button button-secondary"
               aria-label="Manage rewards cards">
