@@ -17,19 +17,16 @@
               aria-label="Account settings">
               Settings
             </button>
-            <button
-              @click="router.push('/settings')"
-              class="button button-icon-only avatar-button"
-              aria-label="View profile">
+            <div class="header-avatar-container">
               <img
                 v-if="avatarUrl"
                 :src="avatarUrl"
-                alt="Profile"
+                alt="Profile picture"
                 class="header-avatar" />
               <span v-else class="header-avatar-placeholder" aria-hidden="true">
                 {{ userInitials }}
               </span>
-            </button>
+            </div>
             <button
               @click="handleLogout"
               class="button button-secondary"
@@ -50,8 +47,7 @@
             <h2 id="lists-heading" class="section-title">My Lists</h2>
             <button
               @click="showNewListDialog = true"
-              class="button button-primary"
-              aria-label="Create a new grocery list">
+              class="button button-primary">
               New List
             </button>
           </div>
@@ -85,65 +81,105 @@
             </ul>
           </div>
 
-          <ul v-else class="lists-grid" role="list">
-            <li v-for="list in listStore.lists" :key="list.id" class="list-card">
-              <NuxtLink
-                :to="`/list/${list.id}`"
-                class="list-link"
-                :aria-label="`Open ${list.name} list`">
-                <h3 class="list-name">{{ list.name }}</h3>
-                <p class="list-meta">
-                  Updated {{ formatDate(list.updated_at) }}
-                </p>
-              </NuxtLink>
-              <button
-                @click="confirmDelete(list)"
-                class="button-icon button-danger"
-                :aria-label="`Delete ${list.name} list`">
-                <span aria-hidden="true">×</span>
-              </button>
-            </li>
-          </ul>
+          <template v-else>
+            <ul class="lists-grid" role="list">
+              <li v-for="list in listStore.lists" :key="list.id" class="list-card">
+                <div class="list-card-body">
+                  <h3 class="list-name">{{ list.name }}</h3>
+                  <p class="list-meta">
+                    Updated {{ formatDate(list.updated_at) }}
+                  </p>
+                </div>
+                <div class="list-actions">
+                  <button
+                    @click="router.push(`/list/${list.id}`)"
+                    class="button-action"
+                    :aria-label="`Edit ${list.name}`">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="action-text">Edit</span>
+                  </button>
+                  <button
+                    @click="openRenameDialog(list)"
+                    class="button-action"
+                    :aria-label="`Rename ${list.name}`">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                    <span class="action-text">Rename</span>
+                  </button>
+                  <button
+                    @click="confirmDelete(list)"
+                    class="button-action button-danger"
+                    :aria-label="`Delete ${list.name}`">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true">
+                      <path d="M3 6h18"></path>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    <span class="action-text">Delete</span>
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </template>
         </section>
       </div>
     </main>
 
     <!-- New List Dialog -->
-    <div
-      v-if="showNewListDialog"
-      class="dialog-overlay"
-      @click="closeNewListDialog"
-      role="dialog"
-      aria-labelledby="new-list-title"
-      aria-modal="true">
+    <div v-if="showNewListDialog" class="dialog-overlay" @click="closeNewListDialog" role="dialog"
+      aria-labelledby="new-list-title" aria-modal="true">
       <div class="dialog" @click.stop>
         <h2 id="new-list-title" class="dialog-title">Create New List</h2>
         <form @submit.prevent="handleCreateList">
           <div class="form-group">
             <label for="list-name" class="form-label">
               List Name
-              <span aria-hidden="true">*</span>
+              <span aria-hidden="false">*</span>
             </label>
-            <input
-              id="list-name"
-              ref="newListInput"
-              v-model="newListName"
-              type="text"
-              class="input"
-              required
-              aria-required="true"
-              placeholder="e.g., Weekly Shopping" />
+            <input id="list-name" ref="newListInput" v-model="newListName" type="text" class="input"
+              required aria-required="true" placeholder="e.g., Weekly Shopping" />
           </div>
           <div class="dialog-actions">
-            <button
-              type="button"
-              @click="closeNewListDialog"
-              class="button button-secondary">
+            <button type="button" @click="closeNewListDialog" class="button button-secondary">
               Cancel
             </button>
-            <button
-              type="submit"
-              class="button button-primary"
+            <button type="submit" class="button button-primary"
               :disabled="!newListName.trim() || isCreating">
               Create
             </button>
@@ -153,56 +189,72 @@
     </div>
 
     <!-- Delete Confirmation Dialog -->
-    <div
-      v-if="listToDelete"
-      class="dialog-overlay"
-      @click="cancelDelete"
-      role="alertdialog"
-      aria-labelledby="delete-title"
-      aria-describedby="delete-description"
-      aria-modal="true">
+    <div v-if="listToDelete" class="dialog-overlay" @click="cancelDelete" role="alertdialog"
+      aria-labelledby="delete-title" aria-describedby="delete-description" aria-modal="true">
       <div class="dialog" @click.stop>
         <h2 id="delete-title" class="dialog-title">Delete List?</h2>
         <p id="delete-description" class="dialog-description">
           Are you sure you want to delete "{{ listToDelete.name }}"? This action cannot be undone.
         </p>
         <div class="dialog-actions">
-          <button
-            type="button"
-            @click="cancelDelete"
-            class="button button-secondary">
+          <button type="button" @click="cancelDelete" class="button button-secondary">
             Cancel
           </button>
-          <button
-            @click="handleDeleteList"
-            class="button delete-button"
-            :disabled="isDeleting">
+          <button @click="handleDeleteList" class="button delete-button" :disabled="isDeleting">
             Delete
           </button>
         </div>
       </div>
     </div>
+
+    <!-- Rename List Dialog -->
+    <div v-if="listToRename" class="dialog-overlay" @click="closeRenameDialog" role="dialog"
+      aria-labelledby="rename-title" aria-modal="true">
+      <div class="dialog" @click.stop>
+        <h2 id="rename-title" class="dialog-title">Rename List</h2>
+        <form @submit.prevent="handleRenameList">
+          <div class="form-group">
+            <label for="rename-list-name" class="form-label">
+              List Name
+              <span aria-hidden="true">*</span>
+            </label>
+            <input id="rename-list-name" v-model="newListName" type="text" class="input" required
+              aria-required="true" placeholder="e.g., Weekly Shopping" />
+          </div>
+          <div class="dialog-actions">
+            <button type="button" @click="closeRenameDialog" class="button button-secondary">
+              Cancel
+            </button>
+            <button type="submit" class="button button-primary"
+              :disabled="!newListName.trim() || isRenaming">
+              {{ isRenaming ? 'Renaming...' : 'Rename' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div v-if="isLoggingOut" class="logout-overlay">
       <div class="logout-spinner"></div>
       <p class="logout-text">Signing out...</p>
     </div>
+
     <!-- Footer -->
     <footer class="app-footer">
       <div class="container">
         <div class="footer-content">
-          <p class="footer-text">
-            © {{ new Date().getFullYear() }} BasketBuddy. Made with <span class="heart"
-              aria-label="love">❤️</span> by <a href="https://toddl.dev" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.
-          </p>
-          <p class="footer-text">
-            Built with accessibility ♿ in mind. <a href="https://github.com/colabottles/basketbuddy"
-              target="_blank" rel="noopener noreferrer" class="footer-link">Please support on GitHub</a> to
-            keep this app free.
-          </p>
+          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
+              class="heart">❤️</span> by <a href="https://toddl.dev" target="_blank"
+              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
+          <p class="footer-text">Built with accessibility in mind. Support on <a
+              href="https://github.com/colabottles/basketbuddy" target="_blank"
+              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
+              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
+            keep costs down.</p>
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
@@ -225,6 +277,8 @@ const newListName = ref('')
 const newListInput = ref<HTMLInputElement | null>(null)
 const isCreating = ref(false)
 const listToDelete = ref<GroceryList | null>(null)
+const listToRename = ref<GroceryList | null>(null)
+const isRenaming = ref(false)
 const isDeleting = ref(false)
 const isLoggingOut = ref(false)
 
@@ -304,6 +358,46 @@ const handleDeleteList = async () => {
     alert('Failed to delete list. Please try again.')
   } finally {
     isDeleting.value = false
+  }
+}
+
+const openRenameDialog = (list: GroceryList) => {
+  listToRename.value = list
+  newListName.value = list.name
+}
+
+const closeRenameDialog = () => {
+  listToRename.value = null
+  newListName.value = ''
+}
+
+const handleRenameList = async () => {
+  if (!listToRename.value || !newListName.value.trim() || isRenaming.value) return
+
+  isRenaming.value = true
+  try {
+    const { error } = await (supabase as any)
+      .from('lists')
+      .update({
+        name: newListName.value.trim()
+      })
+      .eq('id', listToRename.value.id)
+
+    if (error) throw error
+
+    // Update local list immediately
+    const listIndex = listStore.lists.findIndex(l => l.id === listToRename.value?.id)
+    if (listIndex !== -1 && listStore.lists[listIndex]) {
+      listStore.lists[listIndex]!.name = newListName.value.trim()
+      listStore.lists[listIndex]!.updated_at = new Date().toISOString()
+    }
+
+    closeRenameDialog()
+  } catch (error) {
+    console.error('Error renaming list:', error)
+    alert('Failed to rename list. Please try again.')
+  } finally {
+    isRenaming.value = false
   }
 }
 
@@ -455,6 +549,19 @@ useHead({
   color: var(--color-text);
 }
 
+.list-card-label {
+  margin: 0 0 var(--spacing-xs) 0;
+  padding: 0.125rem var(--spacing-sm);
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 0.25rem;
+}
+
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
@@ -479,26 +586,23 @@ useHead({
 .list-card {
   position: relative;
   background-color: var(--color-surface);
-  border: 2px solid var(--color-border);
   border-radius: 0.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: var(--spacing-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-.list-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.list-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: auto;
 }
 
-.list-link {
+.list-card-body {
   display: block;
   padding: var(--spacing-md);
-  text-decoration: none;
-  color: inherit;
-}
-
-.list-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 
 .list-name {
@@ -540,6 +644,66 @@ useHead({
 
 .button-danger:hover {
   background-color: rgba(220, 38, 38, 0.1);
+}
+
+.button-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-height: 60px;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: #10b981;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.375rem;
+}
+
+.button-action:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #34d399;
+}
+
+.button-action.button-danger {
+  color: #f87171;
+  border-color: var(--color-border);
+}
+
+.button-action.button-danger:hover {
+  background-color: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+  color: #fca5a5;
+}
+
+.button-action:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.button-action svg {
+  flex-shrink: 0;
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 640px) {
+  .button-action {
+    min-height: 50px;
+  }
+
+  .action-text {
+    font-size: 0.625rem;
+  }
 }
 
 .dialog-overlay {
@@ -595,6 +759,53 @@ useHead({
 .delete-button:focus-visible {
   outline: 2px solid #dc2626;
   outline-offset: 2px;
+}
+
+/* List deletion */
+
+.button-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: 60px;
+  min-height: 60px;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.375rem;
+}
+
+.button-delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.button-delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.button-delete svg {
+  flex-shrink: 0;
+}
+
+.delete-text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 640px) {
+  .button-delete {
+    min-width: 50px;
+    min-height: 50px;
+  }
 }
 
 .invitations-section {
@@ -753,70 +964,6 @@ useHead({
   border-top: 1px solid var(--color-border);
   padding: var(--spacing-xl) 0;
   margin-top: auto;
-}
-
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-align: center;
-}
-
-.footer-text {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-.heart {
-  color: #dc2626;
-  display: inline-block;
-  animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  10% {
-    transform: scale(1.1);
-  }
-
-  20% {
-    transform: scale(1);
-  }
-}
-
-.footer-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.footer-link:hover {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-}
-
-.footer-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (max-width: 640px) {
-  .footer-content {
-    gap: var(--spacing-md);
-  }
-
-  .footer-text {
-    font-size: var(--font-size-sm);
-  }
 }
 
 /* Small devices (landscape phones, 640px and up) */

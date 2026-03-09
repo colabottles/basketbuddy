@@ -13,15 +13,30 @@
           <div class="header-actions">
             <button
               @click="router.push('/settings')"
-              class="button button-secondary"
-              aria-label="Account settings">
+              class="button button-secondary">
               Settings
             </button>
             <button
               @click="showAddCardDialog = true"
-              class="button button-secondary"
-              aria-label="Add rewards card">
+              class="button button-secondary">
               Add Card
+            </button>
+            <div class="header-avatar-container">
+              <img
+                v-if="avatarUrl"
+                :src="avatarUrl"
+                alt="Profile picture"
+                class="header-avatar" />
+              <span v-else class="header-avatar-placeholder" aria-hidden="true">
+                {{ userInitials }}
+              </span>
+            </div>
+            <button
+              @click="handleLogout"
+              class="button button-secondary"
+              :disabled="isLoggingOut">
+              <span v-if="isLoggingOut">Signing out...</span>
+              <span v-else>Sign Out</span>
             </button>
           </div>
         </div>
@@ -48,14 +63,30 @@
             v-for="card in rewardsStore.cards"
             :key="card.id"
             class="reward-card"
-            :class="{ 'card-linked': card.is_linked }">
+            :class="{ 'card-has-number': card.card_number }">
             <div class="card-header">
               <div class="card-logo">{{ card.retailer_logo || '🏪' }}</div>
               <button
                 @click="confirmDeleteCard(card)"
                 class="button-icon button-danger"
                 :aria-label="`Delete ${card.retailer_name} card`">
-                <span aria-hidden="true">×</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
               </button>
             </div>
             <h3 class="card-name">{{ card.retailer_name }}</h3>
@@ -63,15 +94,10 @@
               •••• {{ card.card_number.slice(-4) }}
             </div>
             <div class="card-status">
-              <span v-if="card.is_linked" class="status-badge status-linked">✓ Linked</span>
-              <span v-else class="status-badge status-not-linked">Not Linked</span>
+              <span v-if="card.card_number" class="status-badge status-linked has-number">✓ Card
+                saved</span>
+              <span v-else class="status-badge status-not-linked">No card number</span>
             </div>
-            <button
-              v-if="!card.is_linked"
-              @click="openLinkCard(card)"
-              class="button button-primary button-small">
-              Link Account
-            </button>
           </div>
         </div>
       </div>
@@ -88,14 +114,15 @@
       <div class="dialog dialog-large" @click.stop>
         <h2 id="add-card-title" class="dialog-title">Add Rewards Card</h2>
 
-        <div v-if="!showCustomForm">
+        <!-- Step 1: Choose retailer -->
+        <div v-if="!selectedRetailer && !showCustomForm">
           <p class="dialog-description">Choose a popular retailer or add a custom card</p>
 
           <div class="retailers-grid">
             <button
               v-for="retailer in POPULAR_RETAILERS"
               :key="retailer.name"
-              @click="selectRetailer(retailer)"
+              @click="selectedRetailer = retailer"
               class="retailer-button">
               <span class="retailer-logo">{{ retailer.logo }}</span>
               <span class="retailer-name">{{ retailer.name }}</span>
@@ -109,11 +136,54 @@
           </button>
         </div>
 
+        <!-- Step 2a: Card number for popular retailer -->
+        <div v-else-if="selectedRetailer">
+          <button
+            @click="selectedRetailer = null"
+            class="button button-secondary button-small back-button">
+            ← Back
+          </button>
+          <div class="selected-retailer">
+            <span class="retailer-logo">{{ selectedRetailer.logo }}</span>
+            <span class="selected-retailer-name">{{ selectedRetailer.name }}</span>
+          </div>
+          <form @submit.prevent="handleAddRetailerCard" class="custom-card-form">
+            <div class="form-group">
+              <label for="retailer-card-number" class="form-label">
+                Card Number <span class="label-optional">(optional)</span>
+              </label>
+              <input
+                id="retailer-card-number"
+                v-model="customCardNumber"
+                type="text"
+                class="input"
+                placeholder="Enter your card number" />
+              <p class="form-hint">You can find this on the back of your physical card or in the
+                retailer's app.</p>
+            </div>
+            <div class="dialog-actions">
+              <button
+                type="button"
+                @click="closeAddCardDialog"
+                class="button button-secondary">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="button button-primary"
+                :disabled="isAddingCard">
+                {{ isAddingCard ? 'Adding...' : 'Add Card' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2b: Custom card form -->
         <div v-else>
           <button
             @click="showCustomForm = false"
             class="button button-secondary button-small back-button">
-            ← Back to Popular
+            ← Back
           </button>
 
           <form @submit.prevent="handleAddCustomCard" class="custom-card-form">
@@ -133,7 +203,7 @@
 
             <div class="form-group">
               <label for="custom-card-number" class="form-label">
-                Card Number (Optional)
+                Card Number <span class="label-optional">(optional)</span>
               </label>
               <input
                 id="custom-card-number"
@@ -141,6 +211,8 @@
                 type="text"
                 class="input"
                 placeholder="Enter your card number" />
+              <p class="form-hint">You can find this on the back of your physical card or in the
+                retailer's app.</p>
             </div>
 
             <div class="dialog-actions">
@@ -160,7 +232,7 @@
           </form>
         </div>
 
-        <div v-if="!showCustomForm" class="dialog-actions">
+        <div v-if="!selectedRetailer && !showCustomForm" class="dialog-actions">
           <button
             type="button"
             @click="closeAddCardDialog"
@@ -206,19 +278,18 @@
     <footer class="app-footer">
       <div class="container">
         <div class="footer-content">
-          <p class="footer-text">
-            © {{ new Date().getFullYear() }} BasketBuddy. Made with <span class="heart"
-              aria-label="love">❤️</span> by <a href="https://toddl.dev" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.
-          </p>
-          <p class="footer-text">
-            Built with accessibility in mind. <a href="https://github.com/colabottles/basketbuddy"
-              target="_blank" rel="noopener noreferrer" class="footer-link">Support on GitHub</a> to
-            keep this app free.
-          </p>
+          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
+              class="heart">❤️</span> by <a href="https://toddl.dev"
+              target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
+          <p class="footer-text">Built with accessibility in mind. Support on <a
+              href="https://github.com/colabottles/basketbuddy" target="_blank"
+              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
+              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
+            keep costs down.</p>
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
@@ -226,6 +297,7 @@
 import { useRewardsStore } from '~/stores/rewardsStore'
 import type { RewardsCard, PopularRetailer } from '~/types/rewards'
 import { POPULAR_RETAILERS } from '~/types/rewards'
+import { clearAllData } from '~/utils/indexedDB'
 
 definePageMeta({
   middleware: 'auth'
@@ -236,42 +308,34 @@ const rewardsStore = useRewardsStore()
 
 const showAddCardDialog = ref(false)
 const showCustomForm = ref(false)
+const selectedRetailer = ref<PopularRetailer | null>(null)
 const customRetailerName = ref('')
 const customCardNumber = ref('')
 const isAddingCard = ref(false)
 const cardToDelete = ref<RewardsCard | null>(null)
 const isDeletingCard = ref(false)
+const supabase = useSupabase()
+const isLoggingOut = ref(false)
+
+const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 
 onMounted(async () => {
+  await loadAvatar()
   await rewardsStore.fetchCards()
 })
 
-const selectRetailer = async (retailer: PopularRetailer) => {
+const handleAddRetailerCard = async () => {
+  if (!selectedRetailer.value || isAddingCard.value) return
+
   isAddingCard.value = true
   try {
-    const card = await rewardsStore.addCard(
-      retailer.name,
-      retailer.logo,
-      null,
+    await rewardsStore.addCard(
+      selectedRetailer.value.name,
+      selectedRetailer.value.logo,
+      customCardNumber.value.trim() || null,
       'popular'
     )
-
     closeAddCardDialog()
-
-    // If retailer has a login URL, offer to link
-    if (retailer.loginUrl) {
-      const shouldLink = confirm(`Would you like to link your ${retailer.name} account now?`)
-      if (shouldLink && card) {
-        window.open(retailer.loginUrl, '_blank')
-        // Mark as linked after user confirms
-        setTimeout(async () => {
-          const linked = confirm('Did you successfully link your account?')
-          if (linked) {
-            await rewardsStore.linkCard(card.id)
-          }
-        }, 2000)
-      }
-    }
   } catch (error) {
     console.error('Error adding card:', error)
     alert('Failed to add card. Please try again.')
@@ -297,22 +361,6 @@ const handleAddCustomCard = async () => {
     alert('Failed to add card. Please try again.')
   } finally {
     isAddingCard.value = false
-  }
-}
-
-const openLinkCard = (card: RewardsCard) => {
-  const retailer = POPULAR_RETAILERS.find(r => r.name === card.retailer_name)
-
-  if (retailer?.loginUrl) {
-    window.open(retailer.loginUrl, '_blank')
-    setTimeout(async () => {
-      const linked = confirm(`Did you successfully link your ${card.retailer_name} account?`)
-      if (linked) {
-        await rewardsStore.linkCard(card.id)
-      }
-    }, 2000)
-  } else {
-    alert('Please visit your retailer\'s website to create an account and note your card number.')
   }
 }
 
@@ -342,8 +390,24 @@ const handleDeleteCard = async () => {
 const closeAddCardDialog = () => {
   showAddCardDialog.value = false
   showCustomForm.value = false
+  selectedRetailer.value = null
   customRetailerName.value = ''
   customCardNumber.value = ''
+}
+
+const handleLogout = async () => {
+  isLoggingOut.value = true
+  try {
+    await clearAllData()
+    await supabase.auth.signOut()
+    await new Promise(resolve => setTimeout(resolve, 300))
+    await router.replace('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    window.location.href = '/login'
+  } finally {
+    isLoggingOut.value = false
+  }
 }
 
 useHead({
@@ -387,6 +451,35 @@ useHead({
 
 .button-icon-only:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button-icon.button-danger {
+  color: #f87171;
+}
+
+.button-icon.button-danger:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+  border-color: #f87171;
+  color: #fca5a5;
+}
+
+.button-icon.button-danger:focus-visible {
+  outline: 2px solid #f87171;
+  outline-offset: 2px;
 }
 
 .app-title {
@@ -468,9 +561,8 @@ useHead({
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.card-linked {
+.card-has-number {
   border-color: var(--color-success);
-  background-color: #f0fdf4;
 }
 
 .card-header {
@@ -511,13 +603,18 @@ useHead({
 }
 
 .status-linked {
-  background-color: var(--color-success);
-  color: white;
+  background-color: #7f1d1d;
+  color: #fed7d7;
+}
+
+.status-linked.has-number {
+  background-color: #064e3b;
+  color: #6ee7b7;
 }
 
 .status-not-linked {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: #7f1d1d;
+  color: #fed7d7;
 }
 
 .dialog-large {
@@ -564,6 +661,35 @@ useHead({
 .button-full {
   width: 100%;
   margin-top: var(--spacing-md);
+  grid-column: 1 / -1;
+  max-width: 600px;
+  justify-self: center;
+}
+
+.selected-retailer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.selected-retailer-name {
+  font-size: var(--font-size-lg);
+}
+
+.label-optional {
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.form-hint {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 .back-button {
@@ -652,63 +778,6 @@ useHead({
   text-align: center;
 }
 
-.footer-text {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-.heart {
-  color: #dc2626;
-  display: inline-block;
-  animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  10% {
-    transform: scale(1.1);
-  }
-
-  20% {
-    transform: scale(1);
-  }
-}
-
-.footer-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.footer-link:hover {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-}
-
-.footer-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (max-width: 640px) {
-  .footer-content {
-    gap: var(--spacing-md);
-  }
-
-  .footer-text {
-    font-size: var(--font-size-sm);
-  }
-}
-
 /* Mobile optimizations */
 @media (max-width: 640px) {
   .app-title {
@@ -775,7 +844,6 @@ useHead({
 
   .custom-card-form .input {
     font-size: 16px;
-    /* Prevents zoom on iOS */
   }
 }
 

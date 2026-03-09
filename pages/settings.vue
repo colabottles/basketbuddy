@@ -12,6 +12,22 @@
           <h1 class="app-title">Settings</h1>
           <div class="header-actions">
             <button
+              @click="router.push('/rewards')"
+              class="button button-secondary"
+              aria-label="Manage rewards cards">
+              Rewards
+            </button>
+            <div class="header-avatar-container">
+              <img
+                v-if="avatarUrl"
+                :src="avatarUrl"
+                alt="Profile picture"
+                class="header-avatar" />
+              <span v-else class="header-avatar-placeholder" aria-hidden="true">
+                {{ userInitials }}
+              </span>
+            </div>
+            <button
               @click="handleLogout"
               class="button button-secondary"
               :disabled="isLoggingOut"
@@ -71,10 +87,67 @@
             </div>
           </div>
 
-          <!-- Email Display -->
+          <!-- Email Settings -->
           <div class="settings-group">
             <h3 class="settings-label">Email Address</h3>
-            <p class="settings-value">{{ userEmail || 'Loading...' }}</p>
+            <p v-if="!showEmailForm" class="settings-value">{{ userEmail || 'Loading...' }}</p>
+
+            <button
+              v-if="!showEmailForm"
+              @click="showEmailForm = true"
+              class="button button-secondary">
+              Change Email
+            </button>
+
+            <form v-else @submit.prevent="handleChangeEmail" class="email-form">
+              <div class="form-group">
+                <label for="current-email" class="form-label">Current Email</label>
+                <input
+                  id="current-email"
+                  :value="userEmail"
+                  type="email"
+                  class="input"
+                  disabled
+                  readonly />
+              </div>
+
+              <div class="form-group">
+                <label for="new-email" class="form-label">
+                  New Email Address
+                  <span aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="new-email"
+                  v-model="newEmail"
+                  type="email"
+                  class="input"
+                  autocomplete="email"
+                  required />
+              </div>
+
+              <div v-if="emailChangeError" class="error-message" role="alert">
+                {{ emailChangeError }}
+              </div>
+
+              <div v-if="emailChangeSuccess" class="success-message" role="status">
+                {{ emailChangeSuccess }}
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  @click="cancelEmailChange"
+                  class="button button-secondary">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="button button-primary"
+                  :disabled="isChangingEmail">
+                  {{ isChangingEmail ? 'Updating...' : 'Update Email' }}
+                </button>
+              </div>
+            </form>
           </div>
 
           <!-- Change Password -->
@@ -249,12 +322,11 @@
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
-              class="heart" aria-label="love">❤️</span> by <a href="https://toddl.dev"
+              class="heart">❤️</span> by <a href="https://toddl.dev"
               target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
-          <p class="footer-text">Built with accessibility in mind. <a
+          <p class="footer-text">Built with accessibility in mind. Support on <a
               href="https://github.com/colabottles/basketbuddy" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Support on GitHub</a> to keep this app
-            free.</p>
+              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to keep costs down.</p>
         </div>
       </div>
     </footer>
@@ -297,6 +369,11 @@ const isUploadingAvatar = ref(false)
 const isRemovingAvatar = ref(false)
 const avatarError = ref('')
 const avatarSuccess = ref('')
+const newEmail = ref('')
+const showEmailForm = ref(false)
+const isChangingEmail = ref(false)
+const emailChangeError = ref('')
+const emailChangeSuccess = ref('')
 
 const userInitials = computed(() => {
   if (!userEmail.value) return '??'
@@ -430,6 +507,57 @@ const handleRemoveAvatar = async () => {
   } finally {
     isRemovingAvatar.value = false
   }
+}
+const handleChangeEmail = async () => {
+  emailChangeError.value = ''
+  emailChangeSuccess.value = ''
+
+  if (!newEmail.value.trim()) {
+    emailChangeError.value = 'Email is required'
+    return
+  }
+
+  if (!validateEmail(newEmail.value)) {
+    emailChangeError.value = 'Please enter a valid email address'
+    return
+  }
+
+  if (newEmail.value === userEmail.value) {
+    emailChangeError.value = 'This is already your email address'
+    return
+  }
+
+  isChangingEmail.value = true
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail.value
+    })
+
+    if (error) throw error
+
+    emailChangeSuccess.value = 'Confirmation email sent! Check your new email address to confirm the change.'
+
+    setTimeout(() => {
+      cancelEmailChange()
+    }, 3000)
+  } catch (error: any) {
+    emailChangeError.value = error.message || 'Failed to update email'
+  } finally {
+    isChangingEmail.value = false
+  }
+}
+
+const cancelEmailChange = () => {
+  showEmailForm.value = false
+  newEmail.value = ''
+  emailChangeError.value = ''
+  emailChangeSuccess.value = ''
+}
+
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }
 
 const handleChangePassword = async () => {
@@ -754,41 +882,6 @@ useHead({
 
 .footer-content {
   text-align: center;
-}
-
-.footer-text {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  margin: var(--spacing-xs) 0;
-}
-
-.footer-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.footer-link:hover {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-}
-
-.heart {
-  color: #dc2626;
-  animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.1);
-  }
 }
 
 .avatar-section {

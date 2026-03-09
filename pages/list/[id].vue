@@ -26,6 +26,16 @@
               aria-label="Account settings">
               Settings
             </button>
+            <div class="header-avatar-container">
+              <img
+                v-if="avatarUrl"
+                :src="avatarUrl"
+                alt="Profile picture"
+                class="header-avatar" />
+              <span v-else class="header-avatar-placeholder" aria-hidden="true">
+                {{ userInitials }}
+              </span>
+            </div>
             <button
               @click="handleLogout"
               class="button button-secondary"
@@ -629,19 +639,18 @@
     <footer class="app-footer">
       <div class="container">
         <div class="footer-content">
-          <p class="footer-text">
-            © {{ new Date().getFullYear() }} BasketBuddy. Made with <span class="heart"
-              aria-label="love">❤️</span> by <a href="https://toddl.dev" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.
-          </p>
-          <p class="footer-text">
-            Built with accessibility in mind. <a href="https://github.com/colabottles/basketbuddy"
-              target="_blank" rel="noopener noreferrer" class="footer-link">Support on GitHub</a> to
-            keep this app free.
-          </p>
+          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
+              class="heart">❤️</span> by <a href="https://toddl.dev"
+              target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
+          <p class="footer-text">Built with accessibility in mind. Support on <a
+              href="https://github.com/colabottles/basketbuddy" target="_blank"
+              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
+              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
+            keep costs down.</p>
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
@@ -658,7 +667,7 @@ definePageMeta({
 })
 
 const colorPalette = [
-  { name: 'Purple', value: '#9333ea', contrast: 'white' },
+  { name: 'Purple', value: '#7c3aed', contrast: 'white' },
   { name: 'Blue', value: '#2563eb', contrast: 'white' },
   { name: 'Green', value: '#059669', contrast: 'white' },
   { name: 'Red', value: '#dc2626', contrast: 'white' },
@@ -697,7 +706,7 @@ const showUpdateNotification = ref(false)
 const updateMessage = ref('')
 const showCategoryDialog = ref(false)
 const newCategoryName = ref('')
-const newCategoryColor = ref('#9333ea')
+const newCategoryColor = ref('#7c3aed')
 const categoryNameInput = ref<HTMLInputElement | null>(null)
 const isCreatingCategory = ref(false)
 const categoryToDelete = ref<Category | null>(null)
@@ -724,8 +733,10 @@ const isLoggingOut = ref(false)
 
 let sortableInstance: Sortable | null = null
 
-// Load list and items
+const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
+
 onMounted(async () => {
+  await loadAvatar()
   await loadListData()
   setupRealtimeSubscription()
   setupDragAndDrop()
@@ -1142,7 +1153,7 @@ const handleClearCompleted = async () => {
 const closeCategoryDialog = () => {
   showCategoryDialog.value = false
   newCategoryName.value = ''
-  newCategoryColor.value = '#9333ea'
+  newCategoryColor.value = '#7c3aed'
 }
 
 watch(showCategoryDialog, (show) => {
@@ -2360,78 +2371,6 @@ useHead({
     right: 0;
     left: 0;
     margin: var(--spacing-xs) var(--spacing-md) 0;
-  }
-}
-
-.app-footer {
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--spacing-xl) 0;
-  margin-top: auto;
-}
-
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-align: center;
-}
-
-.footer-text {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-.heart {
-  color: #dc2626;
-  display: inline-block;
-  animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  10% {
-    transform: scale(1.1);
-  }
-
-  20% {
-    transform: scale(1);
-  }
-}
-
-.footer-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.footer-link:hover {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-}
-
-.footer-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (max-width: 640px) {
-  .footer-content {
-    gap: var(--spacing-md);
-  }
-
-  .footer-text {
-    font-size: var(--font-size-sm);
   }
 }
 
