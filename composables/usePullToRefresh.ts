@@ -38,15 +38,16 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   }
 
   onMounted(() => {
-    document.addEventListener('touchstart', onTouchStart, { passive: true })
-    document.addEventListener('touchmove', onTouchMove, { passive: false }) // passive: false so we can preventDefault
-    document.addEventListener('touchend', onTouchEnd)
+    console.log('usePullToRefresh mounted')
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
   })
 
   onUnmounted(() => {
-    document.removeEventListener('touchstart', onTouchStart)
-    document.removeEventListener('touchmove', onTouchMove)
-    document.removeEventListener('touchend', onTouchEnd)
+    window.removeEventListener('touchstart', onTouchStart)
+    window.removeEventListener('touchmove', onTouchMove)
+    window.removeEventListener('touchend', onTouchEnd)
   })
 
   return { pullDistance, refreshing, THRESHOLD }
