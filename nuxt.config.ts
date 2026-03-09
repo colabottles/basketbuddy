@@ -66,6 +66,9 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
+      cleanupOutdatedCaches: true,
+      skipWaiting: true,
+      clientsClaim: true,
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       runtimeCaching: [
