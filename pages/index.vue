@@ -1293,13 +1293,28 @@ useHead({
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
+    margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .button-action {
-    min-height: 48px;
-    padding: 4px 2px;
     flex: unset;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 52px;
+    padding: var(--spacing-xs) 2px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 0.375rem;
+    min-width: 0;
   }
 
   .button-action svg {
