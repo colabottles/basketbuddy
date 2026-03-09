@@ -20,19 +20,16 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   }
 
   const onTouchMove = (e: TouchEvent) => {
-    console.log('touchmove', pulling.value, pullDistance.value)
     if (!pulling.value || !e.touches[0]) return
     const distance = e.touches[0].clientY - startY.value
+    console.log('touchmove distance', distance, 'pullDistance', pullDistance.value)
     if (distance > 0) {
       pullDistance.value = Math.min(distance, THRESHOLD * 1.5)
-      if (pullDistance.value > 10) {
-        e.preventDefault()
-      }
     }
   }
 
   const onTouchEnd = async () => {
-    console.log('touchend', pullDistance.value, THRESHOLD)
+    console.log('touchend', pullDistance.value, 'threshold', THRESHOLD, 'pulling', pulling.value)
     if (!pulling.value) return
     pulling.value = false
     if (pullDistance.value >= THRESHOLD && !refreshing.value) {
