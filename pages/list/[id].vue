@@ -770,7 +770,7 @@ const loadListData = async () => {
   try {
     const list = await getList(listId.value)
     if (list) {
-      listStore.currentList = list
+      listStore.currentList = list  // only reads from IndexedDB, never Supabase
     }
 
     await listStore.fetchLists?.()
@@ -1261,11 +1261,7 @@ watch(showShareDialog, (show) => {
 })
 
 const { pullDistance, refreshing, THRESHOLD } = usePullToRefresh(async () => {
-  console.log('onRefresh called')
-  await listStore.fetchLists?.()
-  await listStore.fetchItems?.(listId.value)
-  await listStore.fetchCategories?.(listId.value)
-  console.log('onRefresh complete')
+  await loadListData()
 })
 
 const handleLogout = async () => {
