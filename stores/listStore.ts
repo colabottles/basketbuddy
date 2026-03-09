@@ -857,12 +857,11 @@ export const useListStore = defineStore('lists', () => {
         throw new Error('Invalid email address')
       }
 
-      // Use maybeSingle() — single() throws a 406 when no rows found
       const { data: existingShare } = await supabase
         .from('list_shares')
         .select('*')
         .eq('list_id', listId)
-        .eq('invited_email', email.toLowerCase())
+        .or(`invited_email.eq.${email.toLowerCase()},user_id.eq.${session.user.id}`)
         .maybeSingle()
 
       if (existingShare) {
