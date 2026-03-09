@@ -853,12 +853,6 @@ const setupRealtimeSubscription = () => {
         if (index !== -1) {
           const existingItem = listStore.currentItems[index]
           listStore.currentItems[index] = updatedItem
-
-          // Only notify if checked status actually changed
-          if (existingItem && existingItem.checked !== updatedItem.checked) {
-            const action = updatedItem.checked ? 'checked' : 'unchecked'
-            showNotification(`${updatedItem.text} was ${action}`)
-          }
         }
       }
     },
@@ -1041,6 +1035,11 @@ const handleAddItem = async () => {
 const handleToggleItem = async (itemId: string) => {
   try {
     await listStore.toggleItem?.(itemId)
+    const item = listStore.currentItems?.find((i: GroceryItem) => i.id === itemId)
+    if (item) {
+      const action = item.checked ? 'checked' : 'unchecked'
+      showNotification(`${item.text} was ${action}`)
+    }
   } catch (error) {
     console.error('Error toggling item:', error)
   }
