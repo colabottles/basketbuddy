@@ -758,14 +758,6 @@ useHead({
   min-width: 0;
 }
 
-.list-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-top: auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .list-card-body {
   display: block;
   padding: var(--spacing-md);
@@ -784,10 +776,15 @@ useHead({
   margin: 0;
 }
 
+.list-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-top: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .button-icon {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
   padding: var(--spacing-xs);
@@ -888,14 +885,42 @@ useHead({
   max-width: 100%;
 }
 
-@media (max-width: 640px) {
-  .button-action {
-    min-height: 50px;
-  }
+.button-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: 60px;
+  min-height: 60px;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.375rem;
+}
 
-  .action-text {
-    font-size: 0.625rem;
-  }
+.button-delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.button-delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.button-delete svg {
+  flex-shrink: 0;
+}
+
+.delete-text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dialog-overlay {
@@ -1064,19 +1089,6 @@ useHead({
   margin: 0;
 }
 
-.button-icon {
-  min-width: var(--min-touch-target);
-  min-height: var(--min-touch-target);
-  padding: var(--spacing-xs);
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: var(--font-size-2xl);
-  line-height: 1;
-  color: var(--color-text-secondary);
-  border-radius: 0.25rem;
-}
-
 .delete-button {
   background-color: #dc2626;
   color: white;
@@ -1090,53 +1102,6 @@ useHead({
 .delete-button:focus-visible {
   outline: 2px solid #dc2626;
   outline-offset: 2px;
-}
-
-/* List deletion */
-
-.button-delete {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  min-width: 60px;
-  min-height: 60px;
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  color: var(--color-danger);
-  cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 0.375rem;
-}
-
-.button-delete:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-  color: #b91c1c;
-}
-
-.button-delete:focus-visible {
-  outline: 2px solid var(--color-danger);
-  outline-offset: 2px;
-}
-
-.button-delete svg {
-  flex-shrink: 0;
-}
-
-.delete-text {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-@media (max-width: 640px) {
-  .button-delete {
-    min-width: 50px;
-    min-height: 50px;
-  }
 }
 
 .invitations-section {
@@ -1220,12 +1185,6 @@ useHead({
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .avatar-button {
   padding: 0 !important;
   overflow: hidden;
@@ -1278,12 +1237,6 @@ useHead({
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .logout-text {
   font-size: var(--font-size-lg);
   color: var(--color-text);
@@ -1297,22 +1250,24 @@ useHead({
   margin-top: auto;
 }
 
-/* Small devices (landscape phones, 640px and up) */
+/* Small devices (640px and below) */
 @media (max-width: 640px) {
   .app-title {
     font-size: var(--font-size-lg);
   }
 
   .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
   }
 
   .header-actions {
-    width: 100%;
+    width: auto;
     justify-content: flex-start;
     gap: var(--spacing-xs);
+    flex-wrap: wrap;
   }
 
   .section-header {
@@ -1331,16 +1286,30 @@ useHead({
   }
 
   .list-card {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
+  }
+
+  .list-actions {
+    gap: 4px;
   }
 
   .button-action {
-    min-height: 52px;
-    font-size: var(--font-size-xs);
+    min-height: 48px;
+    padding: 4px 2px;
+  }
+
+  .button-action svg {
+    width: 14px;
+    height: 14px;
   }
 
   .action-text {
-    font-size: 0.625rem;
+    font-size: 9px;
+  }
+
+  .button-delete {
+    min-width: 50px;
+    min-height: 50px;
   }
 
   .invitations-section {
