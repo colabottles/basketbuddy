@@ -82,7 +82,6 @@
             <ul class="lists-grid" role="list">
               <li v-for="list in listStore.lists" :key="list.id" class="list-card">
                 <div class="list-card-body">
-                  <p class="list-card-label" aria-hidden="true">Create / Edit List</p>
                   <h3 class="list-name">{{ list.name }}</h3>
                   <p class="list-meta">
                     Updated {{ formatDate(list.updated_at) }}
@@ -1003,12 +1002,13 @@ useHead({
 
   .section-header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     gap: var(--spacing-sm);
   }
 
   .section-header .button {
-    width: 100%;
+    width: auto;
+    min-width: 160px;
   }
 
   .lists-grid {

@@ -13,8 +13,7 @@
           <div class="header-actions">
             <button
               @click="router.push('/rewards')"
-              class="button button-secondary"
-              aria-label="Manage rewards cards">
+              class="button button-secondary">
               Rewards
             </button>
             <div class="header-avatar-container">
@@ -30,8 +29,7 @@
             <button
               @click="handleLogout"
               class="button button-secondary"
-              :disabled="isLoggingOut"
-              aria-label="Sign out of your account">
+              :disabled="isLoggingOut">
               <span v-if="isLoggingOut">Signing out...</span>
               <span v-else>Sign Out</span>
             </button>
@@ -326,7 +324,9 @@
               target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
           <p class="footer-text">Built with accessibility in mind. Support on <a
               href="https://github.com/colabottles/basketbuddy" target="_blank"
-              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to keep costs down.</p>
+              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
+              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
+            keep costs down.</p>
         </div>
       </div>
     </footer>
@@ -377,11 +377,9 @@ const emailChangeSuccess = ref('')
 
 const userInitials = computed(() => {
   if (!userEmail.value) return '??'
-
   const parts = userEmail.value.split('@')[0]?.split('.') || []
   const firstPart = parts[0]
   const secondPart = parts[1]
-
   if (parts.length > 1 && firstPart && firstPart.length > 0 && secondPart && secondPart.length > 0) {
     return (firstPart[0]! + secondPart[0]!).toUpperCase()
   } else if (firstPart && firstPart.length > 1) {
@@ -389,7 +387,6 @@ const userInitials = computed(() => {
   } else if (userEmail.value.length > 1) {
     return userEmail.value.substring(0, 2).toUpperCase()
   }
-
   return '??'
 })
 
@@ -397,7 +394,6 @@ onMounted(async () => {
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
     userEmail.value = user.email || ''
-    // Load avatar URL from user metadata
     avatarUrl.value = user.user_metadata?.avatar_url || ''
   }
 })
@@ -405,71 +401,45 @@ onMounted(async () => {
 const handleAvatarSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-
   if (!file) return
-
   avatarError.value = ''
   avatarSuccess.value = ''
-
-  // Validate file
   if (!file.type.startsWith('image/')) {
     avatarError.value = 'Please select an image file'
     return
   }
-
   if (file.size > 2 * 1024 * 1024) {
     avatarError.value = 'Image must be less than 2MB'
     return
   }
-
   isUploadingAvatar.value = true
-
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('No user found')
-
     const fileExt = file.name.split('.').pop()
     const fileName = `${user.id}/avatar.${fileExt}`
-
-    // Delete old avatar if exists
     if (avatarUrl.value) {
       const oldPath = avatarUrl.value.split('/').slice(-2).join('/')
       await supabase.storage.from('avatars').remove([oldPath])
     }
-
-    // Upload new avatar
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(fileName, file, { upsert: true })
-
     if (uploadError) throw uploadError
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName)
-
-    // Update user metadata
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
     const { error: updateError } = await supabase.auth.updateUser({
       data: { avatar_url: urlData.publicUrl }
     })
-
     if (updateError) throw updateError
-
     avatarUrl.value = urlData.publicUrl
     avatarSuccess.value = 'Profile picture updated successfully!'
-
-    setTimeout(() => {
-      avatarSuccess.value = ''
-    }, 3000)
+    setTimeout(() => { avatarSuccess.value = '' }, 3000)
   } catch (error: any) {
     console.error('Avatar upload error:', error)
     avatarError.value = error.message || 'Failed to upload avatar'
   } finally {
     isUploadingAvatar.value = false
-    if (avatarInput.value) {
-      avatarInput.value.value = ''
-    }
+    if (avatarInput.value) avatarInput.value.value = ''
   }
 }
 
@@ -477,30 +447,18 @@ const handleRemoveAvatar = async () => {
   avatarError.value = ''
   avatarSuccess.value = ''
   isRemovingAvatar.value = true
-
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('No user found')
-
-    // Delete from storage
     if (avatarUrl.value) {
       const path = avatarUrl.value.split('/').slice(-2).join('/')
       await supabase.storage.from('avatars').remove([path])
     }
-
-    // Update user metadata
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: { avatar_url: null }
-    })
-
+    const { error: updateError } = await supabase.auth.updateUser({ data: { avatar_url: null } })
     if (updateError) throw updateError
-
     avatarUrl.value = ''
     avatarSuccess.value = 'Profile picture removed'
-
-    setTimeout(() => {
-      avatarSuccess.value = ''
-    }, 3000)
+    setTimeout(() => { avatarSuccess.value = '' }, 3000)
   } catch (error: any) {
     console.error('Avatar removal error:', error)
     avatarError.value = error.message || 'Failed to remove avatar'
@@ -508,39 +466,19 @@ const handleRemoveAvatar = async () => {
     isRemovingAvatar.value = false
   }
 }
+
 const handleChangeEmail = async () => {
   emailChangeError.value = ''
   emailChangeSuccess.value = ''
-
-  if (!newEmail.value.trim()) {
-    emailChangeError.value = 'Email is required'
-    return
-  }
-
-  if (!validateEmail(newEmail.value)) {
-    emailChangeError.value = 'Please enter a valid email address'
-    return
-  }
-
-  if (newEmail.value === userEmail.value) {
-    emailChangeError.value = 'This is already your email address'
-    return
-  }
-
+  if (!newEmail.value.trim()) { emailChangeError.value = 'Email is required'; return }
+  if (!validateEmail(newEmail.value)) { emailChangeError.value = 'Please enter a valid email address'; return }
+  if (newEmail.value === userEmail.value) { emailChangeError.value = 'This is already your email address'; return }
   isChangingEmail.value = true
-
   try {
-    const { error } = await supabase.auth.updateUser({
-      email: newEmail.value
-    })
-
+    const { error } = await supabase.auth.updateUser({ email: newEmail.value })
     if (error) throw error
-
     emailChangeSuccess.value = 'Confirmation email sent! Check your new email address to confirm the change.'
-
-    setTimeout(() => {
-      cancelEmailChange()
-    }, 3000)
+    setTimeout(() => { cancelEmailChange() }, 3000)
   } catch (error: any) {
     emailChangeError.value = error.message || 'Failed to update email'
   } finally {
@@ -555,40 +493,19 @@ const cancelEmailChange = () => {
   emailChangeSuccess.value = ''
 }
 
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
+const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
 const handleChangePassword = async () => {
   passwordError.value = ''
   passwordSuccess.value = ''
-
-  if (newPassword.value.length < 6) {
-    passwordError.value = 'New password must be at least 6 characters'
-    return
-  }
-
-  if (newPassword.value !== confirmPassword.value) {
-    passwordError.value = 'Passwords do not match'
-    return
-  }
-
+  if (newPassword.value.length < 6) { passwordError.value = 'New password must be at least 6 characters'; return }
+  if (newPassword.value !== confirmPassword.value) { passwordError.value = 'Passwords do not match'; return }
   isChangingPassword.value = true
-
   try {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword.value
-    })
-
+    const { error } = await supabase.auth.updateUser({ password: newPassword.value })
     if (error) throw error
-
     passwordSuccess.value = 'Password updated successfully!'
-
-    // Reset form
-    setTimeout(() => {
-      cancelPasswordChange()
-    }, 2000)
+    setTimeout(() => { cancelPasswordChange() }, 2000)
   } catch (error: any) {
     passwordError.value = error.message || 'Failed to update password'
   } finally {
@@ -609,14 +526,11 @@ const handlePasswordReset = async () => {
   resetError.value = ''
   resetSuccess.value = ''
   isSendingReset.value = true
-
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(userEmail.value, {
       redirectTo: `${window.location.origin}/settings`
     })
-
     if (error) throw error
-
     resetSuccess.value = 'Password reset link sent to your email!'
   } catch (error: any) {
     resetError.value = error.message || 'Failed to send reset link'
@@ -627,7 +541,6 @@ const handlePasswordReset = async () => {
 
 const handleLogout = async () => {
   isLoggingOut.value = true
-
   try {
     await clearAllData()
     await supabase.auth.signOut()
@@ -641,9 +554,7 @@ const handleLogout = async () => {
   }
 }
 
-useHead({
-  title: 'Settings - BasketBuddy'
-})
+useHead({ title: 'Settings - BasketBuddy' })
 </script>
 
 <style scoped>
@@ -651,6 +562,7 @@ useHead({
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -665,6 +577,7 @@ useHead({
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .button-icon-only {
@@ -678,6 +591,7 @@ useHead({
   font-size: var(--font-size-xl);
   cursor: pointer;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .button-icon-only:hover {
@@ -689,11 +603,14 @@ useHead({
   font-size: var(--font-size-xl);
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
 }
 
 .header-actions {
   display: flex;
+  align-items: center;
   gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .button-secondary {
@@ -713,6 +630,7 @@ useHead({
 .settings-section {
   max-width: 600px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .section-title {
@@ -727,6 +645,7 @@ useHead({
   padding: var(--spacing-lg);
   border-radius: 0.5rem;
   margin-bottom: var(--spacing-lg);
+  box-sizing: border-box;
 }
 
 .settings-label {
@@ -837,6 +756,7 @@ useHead({
   display: flex;
   gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
 .logout-overlay {
@@ -888,6 +808,7 @@ useHead({
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
 .avatar-preview {
@@ -931,7 +852,38 @@ useHead({
   background-color: #b91c1c;
 }
 
+/* Mobile */
 @media (max-width: 640px) {
+  .container {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    box-sizing: border-box;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .app-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .settings-section {
+    padding: 0;
+  }
+
+  .settings-group {
+    padding: var(--spacing-md);
+  }
+
   .avatar-section {
     flex-direction: column;
     align-items: flex-start;
@@ -944,24 +896,6 @@ useHead({
   .avatar-actions button,
   .avatar-actions label {
     flex: 1;
-  }
-}
-
-@media (max-width: 640px) {
-  .header-content {
-    gap: var(--spacing-sm);
-  }
-
-  .app-title {
-    font-size: var(--font-size-lg);
-  }
-
-  .settings-section {
-    padding: 0 var(--spacing-sm);
-  }
-
-  .settings-group {
-    padding: var(--spacing-md);
   }
 
   .form-actions {

@@ -412,6 +412,7 @@ useHead({
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -426,6 +427,7 @@ useHead({
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .button-icon-only {
@@ -479,6 +481,14 @@ useHead({
   font-size: var(--font-size-xl);
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .button-secondary {
@@ -793,12 +803,26 @@ useHead({
 
 /* Mobile optimizations */
 @media (max-width: 640px) {
+  .container {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    box-sizing: border-box;
+  }
+
   .app-title {
     font-size: var(--font-size-lg);
   }
 
   .header-content {
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-sm);
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--spacing-xs);
   }
 
   .button-icon-only {
