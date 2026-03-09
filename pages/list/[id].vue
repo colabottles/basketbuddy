@@ -561,7 +561,8 @@
           <ul v-else class="shares-items">
             <li v-for="share in listShares" :key="share.id" class="share-item">
               <div class="share-info">
-                <span class="share-email">{{ share.invited_email || 'User' }}</span>
+                <span class="share-email">{{ share.invited_email || share.email || 'Unknown user'
+                  }}</span>
                 <span class="share-permission">
                   {{ share.permission_level === 'edit' ? 'Can Edit' : 'Can View' }}
                 </span>
@@ -783,10 +784,10 @@ const loadListData = async () => {
 
 const loadListShares = async () => {
   if (!listId.value) return
-
   isLoadingShares.value = true
   try {
     const shares = await listStore.getListShares?.(listId.value)
+    console.log('Loaded shares:', JSON.stringify(shares))
     listShares.value = shares || []
   } catch (error) {
     console.error('Error loading shares:', error)
