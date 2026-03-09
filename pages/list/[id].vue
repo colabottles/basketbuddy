@@ -844,7 +844,6 @@ const setupRealtimeSubscription = () => {
       const newItem = payload.new
       if (listStore.currentItems && !listStore.currentItems.find((item: GroceryItem) => item.id === newItem.id)) {
         listStore.currentItems.push(newItem)
-        showNotification(`${newItem.text} was added`)
       }
     },
     (payload: any) => {
@@ -852,9 +851,14 @@ const setupRealtimeSubscription = () => {
       if (listStore.currentItems) {
         const index = listStore.currentItems.findIndex((item: GroceryItem) => item.id === updatedItem.id)
         if (index !== -1) {
+          const existingItem = listStore.currentItems[index]
           listStore.currentItems[index] = updatedItem
-          const action = updatedItem.checked ? 'checked' : 'unchecked'
-          showNotification(`${updatedItem.text} was ${action}`)
+
+          // Only notify if checked status actually changed
+          if (existingItem && existingItem.checked !== updatedItem.checked) {
+            const action = updatedItem.checked ? 'checked' : 'unchecked'
+            showNotification(`${updatedItem.text} was ${action}`)
+          }
         }
       }
     },
