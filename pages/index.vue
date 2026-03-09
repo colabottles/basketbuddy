@@ -94,8 +94,6 @@
                     :aria-label="`Edit ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -114,8 +112,6 @@
                     :aria-label="`Rename ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -133,8 +129,6 @@
                     :aria-label="`Share ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -156,8 +150,6 @@
                     :aria-label="`Delete ${list.name}`">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
