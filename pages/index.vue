@@ -383,23 +383,21 @@ const linkCopied = ref(false)
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 
 onMounted(async () => {
-  const { data: { user } } = await supabase.auth.getUser()
   await loadAvatar()
-  console.log('Current user on index page:', user)
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    isLoading.value = false
+    return
+  }
 
   isLoading.value = true
-
-  // Clear any stale data
   listStore.lists = []
 
-  // Fetch fresh data
   await listStore.fetchLists?.()
 
-  // Load pending invitations
   const invites = await listStore.getPendingInvitations?.()
   pendingInvitations.value = invites || []
-
-  console.log('Lists loaded:', listStore.lists) // Debug log
 
   isLoading.value = false
 })

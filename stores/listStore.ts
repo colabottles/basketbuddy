@@ -73,9 +73,10 @@ export const useListStore = defineStore('lists', () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        console.warn('No user found when fetching lists')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        console.warn('No session found when fetching lists')
+        await loadListsFromLocal()
         return
       }
 
