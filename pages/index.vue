@@ -769,6 +769,15 @@ useHead({
 }
 
 .list-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* .list-actions {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -785,7 +794,7 @@ useHead({
 
 .list-actions-row .button-action {
   flex: 1;
-}
+} */
 
 .button-icon {
   min-width: var(--min-touch-target);
