@@ -17,8 +17,7 @@ export const useSupabase = (): SupabaseClient<Database> => {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'basketbuddy-auth'
+        detectSessionInUrl: true
       },
       realtime: {
         params: {
