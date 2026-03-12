@@ -855,6 +855,8 @@ export const useListStore = defineStore('lists', () => {
         .eq('id', listId)
         .single<{ owner_id: string, name: string }>()
 
+      console.log('list fetch result:', { list, listError, listId, userId: session.user.id })
+
       if (listError || !list) throw new Error('List not found')
       if (list.owner_id !== session.user.id) throw new Error('Only list owner can share')
 
