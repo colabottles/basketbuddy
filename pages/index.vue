@@ -26,6 +26,51 @@
               </span>
             </div>
             <button
+              @click="toggleTheme"
+              class="button button-secondary theme-toggle"
+              :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+              <!-- Sun (shown in dark mode) -->
+              <svg
+                v-if="isDark"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+                width="20"
+                height="20">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              <!-- Moon (shown in light mode) -->
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+                width="20"
+                height="20">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </button>
+            <button
               @click="handleLogout"
               class="button button-secondary"
               :disabled="isLoggingOut">
@@ -378,6 +423,7 @@ const linkCopied = ref(false)
 
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 const pendingInvitations = ref<any[]>([])
+const { toggleTheme, isDark } = useTheme()
 
 onMounted(async () => {
   await loadAvatar()
@@ -855,54 +901,48 @@ useHead({
   min-width: 0;
 }
 
-.button-action:hover {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-  color: #34d399;
-}
-
-.button-action.button-danger {
-  color: #f87171;
-  border-color: var(--color-border);
-}
-
-.button-action.button-danger:hover {
-  background-color: rgba(248, 113, 113, 0.1);
-  border-color: #f87171;
-  color: #fca5a5;
-}
-
-.button-action.button-collab {
-  color: #60a5fa;
-  border-color: var(--color-border);
-}
-
-.button-action.button-collab:hover {
-  background-color: rgba(96, 165, 250, 0.1);
-  border-color: #60a5fa;
-  color: #93c5fd;
-}
-
 .button-action.button-edit {
-  color: #f59e0b;
+  color: #b45309;
   border-color: var(--color-border);
 }
 
 .button-action.button-edit:hover {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-color: #f59e0b;
-  color: #fbbf24;
+  background-color: rgba(180, 83, 9, 0.1);
+  border-color: #b45309;
+  color: #92400e;
 }
 
 .button-action.button-rename {
-  color: #10b981;
+  color: #047857;
   border-color: var(--color-border);
 }
 
 .button-action.button-rename:hover {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-  color: #34d399;
+  background-color: rgba(4, 120, 87, 0.1);
+  border-color: #047857;
+  color: #065f46;
+}
+
+.button-action.button-collab {
+  color: #1d4ed8;
+  border-color: var(--color-border);
+}
+
+.button-action.button-collab:hover {
+  background-color: rgba(29, 78, 216, 0.1);
+  border-color: #1d4ed8;
+  color: #1e40af;
+}
+
+.button-action.button-danger {
+  color: #b91c1c;
+  border-color: var(--color-border);
+}
+
+.button-action.button-danger:hover {
+  background-color: rgba(185, 28, 28, 0.1);
+  border-color: #b91c1c;
+  color: #991b1b;
 }
 
 .button-action:focus-visible {
@@ -1401,5 +1441,25 @@ useHead({
   .container {
     max-width: 1280px;
   }
+}
+
+:root.dark .button-action.button-edit,
+:root:not(.light) .button-action.button-edit {
+  color: #fbbf24;
+}
+
+:root.dark .button-action.button-rename,
+:root:not(.light) .button-action.button-rename {
+  color: #34d399;
+}
+
+:root.dark .button-action.button-collab,
+:root:not(.light) .button-action.button-collab {
+  color: #60a5fa;
+}
+
+:root.dark .button-action.button-danger,
+:root:not(.light) .button-action.button-danger {
+  color: #f87171;
 }
 </style>

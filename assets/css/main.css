@@ -1,18 +1,16 @@
-/* ===========================
-   CSS Custom Properties
-   =========================== */
 :root {
-  /* Colors - WCAG AA compliant */
+  /* Colors */
   --color-primary: #6626AF;
   --color-primary-dark: #52208A;
   --color-primary-light: #7B3BC4;
   --color-background: #ffffff;
   --color-surface: #f3f4f6;
   --color-text: #111827;
-  --color-text-secondary: #6b7280;
+  --color-text-secondary: #4b5563;
   --color-border: #d1d5db;
   --color-success: #059669;
   --color-danger: #dc2626;
+  --focus-ring: 0 0 0 3px #6626AF, 0 0 0 5px #ffffff;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -59,17 +57,52 @@
 }
 
 /* ===========================
-   Dark Mode Support
+   Light/Dark Mode Support
    =========================== */
+
+/* Light Mode */
+:root.light {
+  --color-primary: #6626AF;
+  --color-primary-dark: #52208A;
+  --color-primary-light: #7B3BC4;
+  --color-background: #ffffff;
+  --color-surface: #f3f4f6;
+  --color-text: #111827;
+  --color-text-secondary: #4b5563;
+  --color-border: #d1d5db;
+  --color-success: #059669;
+  --color-danger: #dc2626;
+  --focus-ring: 0 0 0 3px #6626AF, 0 0 0 5px #ffffff;
+}
+
+/* Dark Mode */
+:root.dark {
+  --color-primary: #6626AF;
+  --color-primary-dark: #52208A;
+  --color-primary-light: #9B5FD4;
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-text: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #374151;
+  --color-success: #34d399;
+  --color-danger: #f87171;
+  --focus-ring: 0 0 0 3px #9B5FD4, 0 0 0 5px #111827;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --color-primary: #6626AF;
     --color-primary-dark: #52208A;
+    --color-primary-light: #9B5FD4;
     --color-background: #111827;
     --color-surface: #1f2937;
     --color-text: #f9fafb;
     --color-text-secondary: #9ca3af;
     --color-border: #374151;
+    --color-success: #34d399;
+    --color-danger: #f87171;
+    --focus-ring: 0 0 0 3px #9B5FD4, 0 0 0 5px #111827;
   }
 }
 
@@ -91,9 +124,21 @@
 }
 
 /* ===========================
+   Toggle button
+   =========================== */
+.theme-toggle {
+  min-width: var(--min-touch-target);
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================
    Reduced Motion Support
    =========================== */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -132,7 +177,8 @@ body {
    Focus Styles
    =========================== */
 :focus-visible {
-  outline: none;
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
   box-shadow: var(--focus-ring);
 }
 
@@ -234,8 +280,9 @@ body {
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: var(--focus-ring);
 }
 
 /* Variants - only override what's different */
@@ -998,6 +1045,7 @@ span.required,
    Print Styles
    =========================== */
 @media print {
+
   .app-header,
   .header-actions,
   .app-footer,
