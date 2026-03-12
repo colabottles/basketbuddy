@@ -873,14 +873,14 @@ useHead({
 }
 
 .button-action.button-collab {
-  color: #3b82f6;
+  color: #1d4ed8;
   border-color: var(--color-border);
 }
 
 .button-action.button-collab:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
-  color: #60a5fa;
+  background-color: rgba(29, 78, 216, 0.1);
+  border-color: #1d4ed8;
+  color: #1e40af;
 }
 
 .button-action.button-edit {
