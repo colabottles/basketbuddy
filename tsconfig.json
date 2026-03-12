@@ -1,6 +1,12 @@
 {
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
   "files": [],
-  "exclude": ["supabase"],
+  "exclude": ["supabase", "supabase/**/*"],
   "references": [
     {
       "path": "./.nuxt/tsconfig.app.json"
