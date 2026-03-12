@@ -22,3 +22,12 @@ logs
 .env
 .env.*
 !.env.example
+
+# VS Code files for those working on multiple tools
+**/.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
