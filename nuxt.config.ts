@@ -35,6 +35,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  vite: {
+    build: {
+      rollupOptions: {
+        external: [/supabase\/functions\/.*/]
+      }
+    }
+  },
+
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
