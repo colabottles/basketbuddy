@@ -30,6 +30,7 @@
     "eslint": "^9.39.2",
     "idb": "^8.0.3",
     "localforage": "^1.10.0",
+    "nodemailer": "^8.0.2",
     "nuxt": "^4.2.2",
     "pinia": "^3.0.4",
     "sortablejs": "^1.15.6",
@@ -38,6 +39,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@types/nodemailer": "^7.0.11",
     "@types/sortablejs": "^1.15.9",
     "@vite-pwa/nuxt": "^1.1.0",
     "vue-tsc": "^3.2.2"

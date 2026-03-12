@@ -848,40 +848,50 @@ export const useListStore = defineStore('lists', () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('User not authenticated')
 
-      const list = lists.value.find(l => l.id === listId)
-      if (!list || list.owner_id !== session.user.id) {
-        throw new Error('Only list owner can share')
-      }
+      // Fetch fresh from DB instead of relying on local lists.value
+      const { data: list, error: listError } = await supabase
+        .from('lists')
+        .select('owner_id, name')
+        .eq('id', listId)
+        .single<{ owner_id: string, name: string }>()
 
-      if (!email || !email.includes('@')) {
-        throw new Error('Invalid email address')
-      }
+      if (listError || !list) throw new Error('List not found')
+      if (list.owner_id !== session.user.id) throw new Error('Only list owner can share')
+
+      if (!email || !email.includes('@')) throw new Error('Invalid email address')
 
       const { data: existingShare } = await supabase
         .from('list_shares')
-        .select('*')
+        .select('id')
         .eq('list_id', listId)
         .eq('invited_email', email.toLowerCase())
         .maybeSingle()
 
-      if (existingShare) {
-        throw new Error('List already shared with this user')
-      }
+      if (existingShare) throw new Error('List already shared with this user')
 
       const newShare = {
         id: uuidv4(),
         list_id: listId,
-        user_id: session.user.id, // owner's ID, not null
+        user_id: session.user.id,
         invited_email: email.toLowerCase(),
         permission_level: permissionLevel,
         invited_at: new Date().toISOString(),
         created_at: new Date().toISOString()
       }
 
-      const { error } = await (supabase.from('list_shares') as any)
-        .insert([newShare])
-
+      const { error } = await (supabase.from('list_shares') as any).insert([newShare])
       if (error) throw error
+
+      // Send email only after successful insert
+      await $fetch('/api/share-invite', {
+        method: 'POST',
+        body: {
+          recipientEmail: email.toLowerCase(),
+          listName: list.name ?? 'Grocery List',
+          senderEmail: session.user.email ?? 'Someone',
+        },
+      })
+
       return newShare
     } catch (error) {
       console.error('Error sharing list:', error)

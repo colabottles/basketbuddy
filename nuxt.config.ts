@@ -84,9 +84,12 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    smtpUser: process.env.SMTP_USER,
+    smtpToken: process.env.SMTP_TOKEN,
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+      appUrl: process.env.APP_URL,
     }
   }
 })
