@@ -94,7 +94,6 @@
    Reduced Motion Support
    =========================== */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
