@@ -1,6 +1,6 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://basketbuddyapp.netlify.app'
 
 Deno.serve(async (req) => {
@@ -11,8 +11,8 @@ Deno.serve(async (req) => {
     const { invited_email, list_id } = record
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_URL'),
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     )
 
     const { data: list } = await supabase
@@ -54,9 +54,8 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
-    const error = err as Error
-    console.error(error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error(err)
+    return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
