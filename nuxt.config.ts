@@ -30,7 +30,10 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: true
+    typeCheck: true,
+    tsConfig: {
+      exclude: ['supabase']
+    }
   },
 
   css: ['~/assets/css/main.css'],
