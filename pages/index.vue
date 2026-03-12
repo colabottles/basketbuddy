@@ -86,6 +86,9 @@
                   <p class="list-meta">
                     Updated {{ formatDate(list.updated_at) }}
                   </p>
+                  <p class="list-owner-badge" v-if="list.owner_id !== currentUserId">
+                    Shared with you
+                  </p>
                 </div>
                 <div class="list-actions">
                   <button
@@ -349,6 +352,7 @@ definePageMeta({
 })
 
 const supabase = useSupabase()
+const currentUserId = ref<string | null>(null)
 const router = useRouter()
 const listStore = useListStore()
 
@@ -384,6 +388,7 @@ onMounted(async () => {
     return
   }
 
+  currentUserId.value = session.user.id
   isLoading.value = true
   listStore.lists = []
 
@@ -775,6 +780,17 @@ useHead({
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+.list-owner-badge {
+  display: inline-block;
+  margin: var(--spacing-xs) 0 0 0;
+  padding: 2px 8px;
+  background-color: #ede9fe;
+  color: #5b21b6;
+  border-radius: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 /* .list-actions {
