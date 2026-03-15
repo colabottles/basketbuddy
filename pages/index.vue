@@ -9,6 +9,9 @@
 
     <main id="main-content" class="main-content">
       <div class="container">
+        <p class="pull-hint" aria-live="polite">
+          <span aria-hidden="true">↓</span> Pull down to refresh
+        </p>
         <section aria-labelledby="lists-heading">
           <div class="section-header">
             <h2 id="lists-heading" class="section-title">My Lists</h2>
@@ -740,24 +743,13 @@ useHead({
   font-weight: 500;
 }
 
-/* .list-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: auto;
-  width: 100%;
-  box-sizing: border-box;
+.pull-hint {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-md);
+  opacity: 0.7;
 }
-
-.list-actions-row {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-}
-
-.list-actions-row .button-action {
-  flex: 1;
-} */
 
 .button-icon {
   min-width: var(--min-touch-target);
