@@ -618,7 +618,6 @@ onMounted(async () => {
       .eq('status', 'active')
       .single()
 
-    console.log('subscription data:', data)
     subscription.value = data
     subscriptionLoading.value = false
   }
