@@ -21,7 +21,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   modules: [
-    '@vite-pwa/nuxt',
+    // '@vite-pwa/nuxt', // temporarily disabled
     '@pinia/nuxt',
     '@nuxtjs/supabase'
   ],
