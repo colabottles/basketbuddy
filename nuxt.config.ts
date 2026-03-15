@@ -107,7 +107,7 @@ export default defineNuxtConfig({
       cleanupOutdatedCaches: true,
       skipWaiting: true,
       clientsClaim: true,
-      navigateFallback: '/',
+      navigateFallback: 'null',
       navigateFallbackDenylist: [/^\/api/, /^\/faq/, /^\/privacy/, /^\/terms/, /^\/support/, /^\/pricing/, /^\/login/, /^\/signup/],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
     },
