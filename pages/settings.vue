@@ -613,10 +613,12 @@ onMounted(async () => {
 
     const { data } = await supabase
       .from('subscriptions')
-      .select('plan, status, current_period_end')
+      .select('plan, status, current_period_end, is_free')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single()
+
+    console.log('subscription data:', data)
     subscription.value = data
     subscriptionLoading.value = false
   }
