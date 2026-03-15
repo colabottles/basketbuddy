@@ -111,6 +111,9 @@ export default defineNuxtConfig({
       navigateFallbackDenylist: [/^\/api/, /^\/faq/, /^\/privacy/, /^\/terms/, /^\/support/, /^\/pricing/, /^\/login/, /^\/signup/],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
     },
+    devOptions: {
+      enabled: false,
+    },
   },
 
   runtimeConfig: {
