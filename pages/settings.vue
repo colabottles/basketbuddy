@@ -890,7 +890,7 @@ useHead({ title: 'Settings - BasketBuddy' })
 
 .button-danger {
   background-color: var(--color-danger);
-  color: white;
+  color: #111;
   border: 2px solid transparent;
 }
 
@@ -901,10 +901,10 @@ useHead({ title: 'Settings - BasketBuddy' })
 
 .free-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 8px;
   background-color: var(--color-success);
   color: white;
-  border-radius: 9999px;
+  border-radius: 10px;
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
