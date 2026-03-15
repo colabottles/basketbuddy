@@ -16,16 +16,11 @@ export default defineNuxtConfig({
       ]
     }
   },
-
-  // Disable SSR for client-side PWA
   ssr: false,
-
   modules: [
-    // '@vite-pwa/nuxt', // temporarily disabled
     '@pinia/nuxt',
     '@nuxtjs/supabase'
   ],
-
   typescript: {
     strict: true,
     typeCheck: true,
@@ -33,37 +28,34 @@ export default defineNuxtConfig({
       exclude: ['../../supabase', '../../supabase/**/*']
     }
   },
-
   css: ['~/assets/css/main.css'],
-
   nitro: {
-  routeRules: {
-    '/**': {
-      headers: {
-        'Content-Security-Policy': [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://js.stripe.com",
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data: blob: https://*.supabase.co https://xsrijgvbcvaxrclohfpu.supabase.co",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://checkout.stripe.com",
-          "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
-          "worker-src 'self' blob:",
-          "base-uri 'self'",
-          "form-action 'self'",
-          "object-src 'none'",
-        ].join('; '),
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    routeRules: {
+      '/**': {
+        headers: {
+          'Content-Security-Policy': [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "img-src 'self' data: blob: https://*.supabase.co https://xsrijgvbcvaxrclohfpu.supabase.co",
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://checkout.stripe.com",
+            "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+            "worker-src 'self' blob:",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "object-src 'none'",
+          ].join('; '),
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'DENY',
+          'X-XSS-Protection': '1; mode=block',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        }
       }
     }
-  }
-},
-
+  },
   vite: {
     build: {
       rollupOptions: {
@@ -71,54 +63,6 @@ export default defineNuxtConfig({
       }
     }
   },
-
-  pwa: {
-    registerType: 'autoUpdate',
-    manifest: {
-      name: 'BasketBuddy',
-      short_name: 'BasketBuddy',
-      description: 'Collaborative grocery list app with real-time sharing',
-      theme_color: '#6626AF',
-      background_color: '#ffffff',
-      display: 'standalone',
-      orientation: 'portrait',
-      scope: '/',
-      start_url: '/',
-      icons: [
-        {
-          src: '/icon-192.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: '/icon-512.png',
-          sizes: '512x512',
-          type: 'image/png'
-        },
-        {
-          src: '/icon-512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ]
-    },
-    workbox: {
-      cleanupOutdatedCaches: true,
-      skipWaiting: true,
-      clientsClaim: true,
-      navigateFallback: 'null',
-      navigateFallbackDenylist: [/^\/api/, /^\/faq/, /^\/privacy/, /^\/terms/, /^\/support/, /^\/pricing/, /^\/login/, /^\/signup/],
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-    },
-    injectManifest: {
-      injectionPoint: undefined,
-    },
-    devOptions: {
-      enabled: false,
-    },
-  },
-
   runtimeConfig: {
     smtpUser: process.env.SMTP_USER,
     smtpToken: process.env.SMTP_TOKEN,
