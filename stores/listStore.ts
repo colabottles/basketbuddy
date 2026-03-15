@@ -140,15 +140,22 @@ export const useListStore = defineStore('lists', () => {
       updated_at: new Date().toISOString()
     }
 
-    await saveList(newList)
+    // Try IndexedDB but don't let it block list creation
+    try {
+      await saveList(newList)
+    } catch (e) {
+      console.warn('IndexedDB save failed, continuing:', e)
+    }
+
     lists.value.unshift(newList)
 
     if (isOnline.value) {
+    try {
+      const { error } = await (supabase.from('lists') as any).insert([newList])
+      if (error) throw error
+    } catch (error) {
+      console.error('Error creating list online:', error)
       try {
-        const { error } = await (supabase.from('lists') as any).insert([newList])
-        if (error) throw error
-      } catch (error) {
-        console.error('Error creating list online:', error)
         await addToSyncQueue({
           id: uuidv4(),
           type: 'CREATE',
@@ -158,18 +165,11 @@ export const useListStore = defineStore('lists', () => {
           synced: false,
           retries: 0
         })
+      } catch (e) {
+        console.warn('Sync queue failed:', e)
       }
-    } else {
-      await addToSyncQueue({
-        id: uuidv4(),
-        type: 'CREATE',
-        table: 'lists',
-        data: newList,
-        timestamp: Date.now(),
-        synced: false,
-        retries: 0
-      })
     }
+  }
 
     return newList
   }
