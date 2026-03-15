@@ -1243,45 +1243,6 @@ useHead({
   overflow-x: hidden;
 }
 
-.app-header {
-  background-color: var(--color-primary);
-  color: white;
-  padding: var(--spacing-md) 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.button-icon-only {
-  min-width: var(--min-touch-target);
-  min-height: var(--min-touch-target);
-  padding: var(--spacing-sm);
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: background-color 0.2s;
-}
-
-.button-icon-only:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.button-icon-only:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-}
-
 .button-danger {
   background-color: var(--color-danger);
   color: white;
@@ -1294,40 +1255,6 @@ useHead({
 .button-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.app-title {
-  flex: 1;
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.offline-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: 0.25rem;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
-
-.button-secondary {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.button-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .main-content {
