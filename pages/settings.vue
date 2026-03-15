@@ -703,6 +703,16 @@ useHead({ title: 'Settings - BasketBuddy' })
   line-height: 1.5;
 }
 
+.settings-link {
+  color: var(--color-primary-light);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.settings-link:hover {
+  color: var(--color-primary);
+}
+
 .password-form {
   margin-top: var(--spacing-lg);
 }
@@ -881,10 +891,12 @@ useHead({ title: 'Settings - BasketBuddy' })
 .button-danger {
   background-color: var(--color-danger);
   color: white;
+  border: 2px solid transparent;
 }
 
 .button-danger:hover:not(:disabled) {
   background-color: #b91c1c;
+  color: white;
 }
 
 .free-badge {

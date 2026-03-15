@@ -219,11 +219,11 @@ const checkout = async (priceKey: string) => {
 
 .billing-save-badge {
   background-color: var(--color-success);
-  color: #fff;
+  color: #111;
   font-size: 0.65rem;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 9999px;
+  padding: 3px 6px;
+  border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
