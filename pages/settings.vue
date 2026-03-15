@@ -282,9 +282,90 @@
               {{ resetError }}
             </div>
           </div>
+
+          <!-- Subscription -->
+          <div class="settings-group">
+            <h3 class="settings-label">Subscription</h3>
+            <div v-if="subscriptionLoading" class="settings-description">Loading...</div>
+            <div v-else-if="subscription">
+              <p class="settings-value">
+                <strong>Plan:</strong> {{ subscription.plan === 'solo' ? 'Solo' : 'Family' }}
+                <span v-if="subscription.is_free" class="free-badge">Free</span>
+              </p>
+              <p class="settings-value">
+                <strong>Status:</strong> {{ subscription.status === 'active' ? 'Active' :
+                  subscription.status }}
+              </p>
+              <p class="settings-value"
+                v-if="!subscription.is_free && subscription.current_period_end">
+                <strong>Next billing date:</strong> {{ formatDate(subscription.current_period_end)
+                }}
+              </p>
+              <p class="settings-value" v-if="subscription.is_free">
+                <strong>Billing:</strong> Free forever
+              </p>
+              <p class="settings-description">
+                To manage or cancel your subscription, contact us at
+                <a href="mailto:todd@toddl.dev" class="settings-link">todd@toddl.dev</a>
+                and we'll take care of it right away.
+              </p>
+            </div>
+            <div v-else>
+              <p class="settings-description">You don't have an active subscription.</p>
+              <NuxtLink to="/pricing" class="button button-primary">View Plans</NuxtLink>
+            </div>
+          </div>
+
+          <!-- Delete Account -->
+          <div class="settings-group settings-group-danger">
+            <h3 class="settings-label">Delete Account</h3>
+            <p class="settings-description">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            <button
+              @click="showDeleteConfirm = true"
+              class="button button-danger">
+              Delete Account
+            </button>
+          </div>
         </section>
       </div>
     </main>
+
+    <!-- Delete Account Confirmation -->
+    <div
+      v-if="showDeleteConfirm"
+      class="dialog-overlay"
+      @click="showDeleteConfirm = false"
+      role="alertdialog"
+      aria-labelledby="delete-account-title"
+      aria-describedby="delete-account-description"
+      aria-modal="true">
+      <div class="dialog" @click.stop>
+        <h2 id="delete-account-title" class="dialog-title">Delete Account?</h2>
+        <p id="delete-account-description" class="dialog-description">
+          This will permanently delete your account, all your lists, items, and data. This cannot be
+          undone. Are you absolutely sure?
+        </p>
+        <div v-if="deleteAccountError" class="error-message" role="alert">
+          {{ deleteAccountError }}
+        </div>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            @click="showDeleteConfirm = false"
+            class="button button-secondary">
+            Cancel
+          </button>
+          <button
+            @click="handleDeleteAccount"
+            class="button button-danger"
+            :disabled="isDeletingAccount">
+            {{ isDeletingAccount ? 'Deleting...' : 'Yes, Delete My Account' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <AppFooter />
 
@@ -334,6 +415,16 @@ const showEmailForm = ref(false)
 const isChangingEmail = ref(false)
 const emailChangeError = ref('')
 const emailChangeSuccess = ref('')
+const subscription = ref<{
+  plan: string
+  status: string
+  current_period_end: string
+  is_free: boolean
+} | null>(null)
+const subscriptionLoading = ref(true)
+const showDeleteConfirm = ref(false)
+const isDeletingAccount = ref(false)
+const deleteAccountError = ref('')
 
 const userInitials = computed(() => {
   if (!userEmail.value) return '??'
@@ -511,6 +602,45 @@ const handleLogout = async () => {
     window.location.href = '/login'
   } finally {
     isLoggingOut.value = false
+  }
+}
+
+onMounted(async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    userEmail.value = user.email || ''
+    avatarUrl.value = user.user_metadata?.avatar_url || ''
+
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('plan, status, current_period_end')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single()
+    subscription.value = data
+    subscriptionLoading.value = false
+  }
+})
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const handleDeleteAccount = async () => {
+  isDeletingAccount.value = true
+  deleteAccountError.value = ''
+  try {
+    await clearAllData()
+    await $fetch('/api/account/delete', { method: 'POST' })
+    await supabase.auth.signOut()
+    await router.replace('/login')
+  } catch (error: any) {
+    deleteAccountError.value = error.message || 'Failed to delete account. Please contact support.'
+    isDeletingAccount.value = false
   }
 }
 
@@ -753,6 +883,20 @@ useHead({ title: 'Settings - BasketBuddy' })
 
 .button-danger:hover:not(:disabled) {
   background-color: #b91c1c;
+}
+
+.free-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--color-success);
+  color: white;
+  border-radius: 9999px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: var(--spacing-xs);
+  vertical-align: middle;
 }
 
 /* Mobile */

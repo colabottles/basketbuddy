@@ -22,10 +22,18 @@ export default defineEventHandler(async (event) => {
     const session = stripeEvent.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
     const subscriptionId = session.subscription as string
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-    const sub = subscription as unknown as { current_period_end: number; items: Stripe.Subscription['items']; status: string }
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+      expand: ['discount']
+    })
+    const sub = subscription as unknown as {
+      current_period_end: number
+      items: Stripe.Subscription['items']
+      status: string
+      discount: { coupon: { percent_off: number } } | null
+    }
     const priceId = sub.items?.data?.[0]?.price?.id ?? ''
     const plan = getPlanFromPriceId(priceId)
+    const isFree = sub.discount?.coupon?.percent_off === 100
 
     await supabase.from('subscriptions').upsert({
       user_id: userId,
@@ -33,7 +41,10 @@ export default defineEventHandler(async (event) => {
       stripe_customer_id: session.customer as string,
       plan,
       status: 'active',
-      current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // fallback: 30 days from now
+      is_free: isFree,
+      current_period_end: sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString()
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     })
   }
 
