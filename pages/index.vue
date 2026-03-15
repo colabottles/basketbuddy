@@ -748,7 +748,13 @@ useHead({
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin: 0 0 var(--spacing-md);
-  opacity: 0.7;
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .pull-hint {
+    display: block;
+  }
 }
 
 .button-icon {
