@@ -704,7 +704,7 @@ useHead({ title: 'Settings - BasketBuddy' })
 }
 
 .settings-link {
-  color: var(--color-primary-light);
+  color: #eee;
   font-weight: 600;
   text-decoration: underline;
 }
@@ -903,7 +903,7 @@ useHead({ title: 'Settings - BasketBuddy' })
   display: inline-block;
   padding: 3px 8px;
   background-color: var(--color-success);
-  color: white;
+  color: #111;
   border-radius: 10px;
   font-size: var(--font-size-xs);
   font-weight: 700;
