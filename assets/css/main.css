@@ -755,8 +755,9 @@ body {
 }
 
 .settings-link {
-  color: var(--color-primary);
+  color: var(--color-primary-light);
   font-weight: 500;
+  text-decoration: underline;
 }
 
 .settings-link:hover {
