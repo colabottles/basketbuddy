@@ -147,8 +147,6 @@
 </template>
 
 <script setup lang="ts">
-console.log('signup page mounted')
-
 definePageMeta({
   middleware: []
 })
