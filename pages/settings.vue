@@ -704,13 +704,15 @@ useHead({ title: 'Settings - BasketBuddy' })
 }
 
 .settings-link {
-  color: #eee;
+  color: var(--color-text);
   font-weight: 600;
   text-decoration: underline;
+  text-decoration-color: var(--color-primary-light);
+  text-underline-offset: 3px;
 }
 
 .settings-link:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-light);
 }
 
 .password-form {
@@ -889,12 +891,23 @@ useHead({ title: 'Settings - BasketBuddy' })
 }
 
 .button-danger {
-  background-color: var(--color-danger);
-  color: #111;
-  border: 2px solid transparent;
+  background-color: #b91c1c;
+  color: white;
 }
 
 .button-danger:hover:not(:disabled) {
+  background-color: #991b1b;
+  color: white;
+}
+
+:root.dark .button-danger,
+:root:not(.light) .button-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+:root.dark .button-danger:hover:not(:disabled),
+:root:not(.light) .button-danger:hover:not(:disabled) {
   background-color: #b91c1c;
   color: white;
 }
@@ -902,8 +915,8 @@ useHead({ title: 'Settings - BasketBuddy' })
 .free-badge {
   display: inline-block;
   padding: 3px 8px;
-  background-color: var(--color-success);
-  color: #111;
+  background-color: #065f46;
+  color: #6ee7b7;
   border-radius: 10px;
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -911,6 +924,12 @@ useHead({ title: 'Settings - BasketBuddy' })
   letter-spacing: 0.04em;
   margin-left: var(--spacing-xs);
   vertical-align: middle;
+}
+
+:root.dark .free-badge,
+:root:not(.light) .free-badge {
+  background-color: #064e3b;
+  color: #6ee7b7;
 }
 
 /* Mobile */
