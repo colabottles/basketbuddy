@@ -6,6 +6,18 @@
   NODE_VERSION = "20"
 
 [[redirects]]
+  from = "/signup"
+  to = "/signup"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/login"
+  to = "/login"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
