@@ -155,10 +155,6 @@ const handleLogin = async () => {
     if (error) throw error
 
     if (data.user) {
-      await navigateTo('/', { replace: true })
-    }
-
-    if (data.user) {
       await new Promise(resolve => setTimeout(resolve, 100))
       await navigateTo('/', { replace: true })
     }
