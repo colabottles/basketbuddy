@@ -1814,6 +1814,12 @@ useHead({
   border-radius: 0.375rem;
 }
 
+.image-upload-label:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
 .image-upload-label:focus-visible {
   outline: 3px solid var(--color-primary);
   outline-offset: 2px;
