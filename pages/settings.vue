@@ -1,42 +1,12 @@
 <template>
   <div class="app-container">
-    <header class="app-header">
-      <div class="container">
-        <div class="header-content">
-          <button
-            @click="router.push('/')"
-            class="button button-icon-only"
-            aria-label="Go back to lists">
-            <span aria-hidden="true">←</span>
-          </button>
-          <h1 class="app-title">Settings</h1>
-          <div class="header-actions">
-            <button
-              @click="router.push('/rewards')"
-              class="button button-secondary">
-              Rewards
-            </button>
-            <div class="header-avatar-container">
-              <img
-                v-if="avatarUrl"
-                :src="avatarUrl"
-                alt="Profile picture"
-                class="header-avatar" />
-              <span v-else class="header-avatar-placeholder" aria-hidden="true">
-                {{ userInitials }}
-              </span>
-            </div>
-            <button
-              @click="handleLogout"
-              class="button button-secondary"
-              :disabled="isLoggingOut">
-              <span v-if="isLoggingOut">Signing out...</span>
-              <span v-else>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader
+      title="BasketBuddy"
+      :show-back="true"
+      :is-logging-out="isLoggingOut"
+      :avatar-url="avatarUrl"
+      :user-initials="userInitials"
+      @logout="handleLogout" />
 
     <main id="main-content" class="main-content">
       <div class="container">
@@ -316,20 +286,7 @@
       </div>
     </main>
 
-    <footer class="app-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
-              class="heart">❤️</span> by <a href="https://toddl.dev"
-              target="_blank" rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
-          <p class="footer-text">Built with accessibility in mind. Support on <a
-              href="https://github.com/colabottles/basketbuddy" target="_blank"
-              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
-              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
-            keep costs down.</p>
-        </div>
-      </div>
-    </footer>
+    <AppFooter />
 
     <div v-if="isLoggingOut" class="logout-overlay">
       <div class="logout-spinner"></div>
@@ -339,11 +296,14 @@
 </template>
 
 <script setup lang="ts">
-import { clearAllData } from '~/utils/indexedDB'
+import { clearAllData } from '~/server/utils/indexedDB'
 
 definePageMeta({
   middleware: 'auth'
 })
+
+const { loadAvatar } = useUserAvatar()
+onMounted(loadAvatar)
 
 const supabase = useSupabase()
 const router = useRouter()
@@ -563,63 +523,6 @@ useHead({ title: 'Settings - BasketBuddy' })
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-}
-
-.app-header {
-  background-color: var(--color-primary);
-  color: white;
-  padding: var(--spacing-md) 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.button-icon-only {
-  min-width: var(--min-touch-target);
-  min-height: var(--min-touch-target);
-  padding: var(--spacing-sm);
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.button-icon-only:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.app-title {
-  flex: 1;
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.button-secondary {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.button-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .main-content {

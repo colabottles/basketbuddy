@@ -1,47 +1,12 @@
 <template>
   <div class="app-container">
-    <header class="app-header">
-      <div class="container">
-        <div class="header-content">
-          <button
-            @click="router.back()"
-            class="button button-icon-only"
-            aria-label="Go back">
-            <span aria-hidden="true">←</span>
-          </button>
-          <h1 class="app-title">Rewards Cards</h1>
-          <div class="header-actions">
-            <button
-              @click="router.push('/settings')"
-              class="button button-secondary">
-              Settings
-            </button>
-            <button
-              @click="showAddCardDialog = true"
-              class="button button-secondary">
-              Add Card
-            </button>
-            <div class="header-avatar-container">
-              <img
-                v-if="avatarUrl"
-                :src="avatarUrl"
-                alt="Profile picture"
-                class="header-avatar" />
-              <span v-else class="header-avatar-placeholder" aria-hidden="true">
-                {{ userInitials }}
-              </span>
-            </div>
-            <button
-              @click="handleLogout"
-              class="button button-secondary"
-              :disabled="isLoggingOut">
-              <span v-if="isLoggingOut">Signing out...</span>
-              <span v-else>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader
+      title="BasketBuddy"
+      :show-back="true"
+      :is-logging-out="isLoggingOut"
+      :avatar-url="avatarUrl"
+      :user-initials="userInitials"
+      @logout="handleLogout" />
 
     <main id="main-content" class="main-content">
       <div class="container">
@@ -54,11 +19,7 @@
           <p class="loading-text">Loading your cards...</p>
         </div>
 
-        <div v-else-if="rewardsStore.cards.length === 0" class="empty-state">
-          <p class="empty-text">No rewards cards yet. Add your first card to get started!</p>
-        </div>
-
-        <div v-else class="cards-grid">
+        <div class="cards-grid">
           <div
             v-for="card in rewardsStore.cards"
             :key="card.id"
@@ -133,6 +94,29 @@
               <span v-else class="status-badge status-not-linked">No card number</span>
             </div>
           </div>
+
+          <!-- Add card CTA -->
+          <button
+            class="reward-card add-card-cta"
+            @click="showAddCardDialog = true"
+            aria-label="Add a new rewards card">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            <span class="add-card-label">Add Card</span>
+          </button>
         </div>
       </div>
     </main>
@@ -143,7 +127,7 @@
       <div class="dialog dialog-large" @click.stop>
         <h2 id="add-card-title" class="dialog-title">Add Rewards Card</h2>
 
-        <!-- Step 1: Choose retailer -->
+        <!-- Choose retailer -->
         <div v-if="!selectedRetailer && !showCustomForm">
           <p class="dialog-description">Choose a popular retailer or add a custom card</p>
 
@@ -160,7 +144,7 @@
           </button>
         </div>
 
-        <!-- Step 2a: Card number for popular retailer -->
+        <!-- Card number for popular retailer -->
         <div v-else-if="selectedRetailer">
           <button @click="selectedRetailer = null"
             class="button button-secondary button-small back-button">
@@ -191,7 +175,7 @@
           </form>
         </div>
 
-        <!-- Step 2b: Custom card form -->
+        <!-- Custom card form -->
         <div v-else>
           <button @click="showCustomForm = false"
             class="button button-secondary button-small back-button">
@@ -258,21 +242,7 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
-              class="heart">❤️</span> by <a href="https://toddl.dev" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
-          <p class="footer-text">Built with accessibility in mind. Support on <a
-              href="https://github.com/colabottles/basketbuddy" target="_blank"
-              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
-              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
-            keep costs down.</p>
-        </div>
-      </div>
-    </footer>
+    <AppFooter />
 
   </div>
 </template>
@@ -281,11 +251,14 @@
 import { useRewardsStore } from '~/stores/rewardsStore'
 import type { RewardsCard, PopularRetailer } from '~/types/rewards'
 import { POPULAR_RETAILERS } from '~/types/rewards'
-import { clearAllData } from '~/utils/indexedDB'
+import { clearAllData } from '~/server/utils/indexedDB'
 
 definePageMeta({
   middleware: 'auth'
 })
+
+const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
+onMounted(loadAvatar)
 
 const router = useRouter()
 const rewardsStore = useRewardsStore()
@@ -300,8 +273,6 @@ const cardToDelete = ref<RewardsCard | null>(null)
 const isDeletingCard = ref(false)
 const supabase = useSupabase()
 const isLoggingOut = ref(false)
-
-const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 
 onMounted(async () => {
   await loadAvatar()
@@ -642,6 +613,37 @@ useHead({
 
 .dialog-large {
   max-width: 600px;
+}
+
+.add-card-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  border: 2px dashed var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  min-height: 160px;
+  color: var(--color-text-secondary);
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+  font-family: inherit;
+}
+
+.add-card-cta:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(102, 38, 175, 0.05);
+}
+
+.add-card-cta:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.add-card-label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
 }
 
 .retailers-grid {

@@ -10,26 +10,22 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   }
 
   const onTouchStart = (e: TouchEvent) => {
-    console.log('touchstart fired', window.scrollY, document.documentElement.scrollTop)
     const scrollTop = getScrollTop()
     if (scrollTop <= 0 && e.touches[0]) {
       startY.value = e.touches[0].clientY
       pulling.value = true
-      console.log('pulling started at', startY.value)
     }
   }
 
   const onTouchMove = (e: TouchEvent) => {
     if (!pulling.value || !e.touches[0]) return
     const distance = e.touches[0].clientY - startY.value
-    console.log('touchmove distance', distance, 'pullDistance', pullDistance.value)
     if (distance > 0) {
       pullDistance.value = Math.min(distance, THRESHOLD * 1.5)
     }
   }
 
   const onTouchEnd = async () => {
-    console.log('touchend', pullDistance.value, 'threshold', THRESHOLD, 'pulling', pulling.value)
     if (!pulling.value) return
     pulling.value = false
     if (pullDistance.value >= THRESHOLD && !refreshing.value) {
@@ -41,7 +37,6 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   }
 
   onMounted(() => {
-    console.log('usePullToRefresh mounted')
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })

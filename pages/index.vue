@@ -1,86 +1,11 @@
 <template>
   <div class="app-container">
-    <header class="app-header">
-      <div class="container">
-        <div class="header-content">
-          <h1 class="app-title">BasketBuddy</h1>
-          <div class="header-actions">
-            <button
-              @click="router.push('/rewards')"
-              class="button button-secondary">
-              Rewards
-            </button>
-            <button
-              @click="router.push('/settings')"
-              class="button button-secondary">
-              Settings
-            </button>
-            <div class="header-avatar-container">
-              <img
-                v-if="avatarUrl"
-                :src="avatarUrl"
-                alt="Profile picture"
-                class="header-avatar" />
-              <span v-else class="header-avatar-placeholder" aria-hidden="true">
-                {{ userInitials }}
-              </span>
-            </div>
-            <button
-              @click="toggleTheme"
-              class="button button-secondary theme-toggle"
-              :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
-              <!-- Sun (shown in dark mode) -->
-              <svg
-                v-if="isDark"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                focusable="false"
-                width="20"
-                height="20">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-              <!-- Moon (shown in light mode) -->
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                focusable="false"
-                width="20"
-                height="20">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            </button>
-            <button
-              @click="handleLogout"
-              class="button button-secondary"
-              :disabled="isLoggingOut">
-              <span v-if="isLoggingOut">Signing out...</span>
-              <span v-else>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader
+      title="BasketBuddy"
+      :is-logging-out="isLoggingOut"
+      :avatar-url="avatarUrl"
+      :user-initials="userInitials"
+      @logout="handleLogout" />
 
     <main id="main-content" class="main-content">
       <div class="container">
@@ -368,28 +293,14 @@
       <p class="logout-text">Signing out...</p>
     </div>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">© {{ new Date().getFullYear() }} BasketBuddy. Made with <span
-              class="heart">❤️</span> by <a href="https://toddl.dev" target="_blank"
-              rel="noopener noreferrer" class="footer-link">Todd Libby</a>.</p>
-          <p class="footer-text">Built with accessibility in mind. Support on <a
-              href="https://github.com/colabottles/basketbuddy" target="_blank"
-              rel="noopener noreferrer" class="footer-link">GitHub</a> or <a
-              href="https://ko-fi.com/Y8Y727FD2" class="footer-link" target="_blank">Ko-Fi</a> to
-            keep costs down.</p>
-        </div>
-      </div>
-    </footer>
+    <AppFooter />
 
   </div>
 </template>
 
 <script setup lang="ts">
 import { useListStore } from '~/stores/listStore'
-import { clearAllData } from '~/utils/indexedDB'
+import { clearAllData } from '~/server/utils/indexedDB'
 import type { GroceryList } from '~/types/models'
 
 definePageMeta({
@@ -423,7 +334,6 @@ const linkCopied = ref(false)
 
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 const pendingInvitations = ref<any[]>([])
-const { toggleTheme, isDark } = useTheme()
 
 onMounted(async () => {
   await loadAvatar()
@@ -733,15 +643,6 @@ useHead({
   border-radius: 0.25rem;
   font-size: var(--font-size-sm);
   font-weight: 500;
-}
-
-.button-secondary {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.button-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .main-content {

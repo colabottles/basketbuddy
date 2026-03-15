@@ -148,7 +148,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'guest'
+  middleware: []
 })
 
 const supabase = useSupabase()
@@ -170,6 +170,11 @@ const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
 }
+
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) await navigateTo('/')
+})
 
 const handleSignup = async () => {
   emailError.value = ''

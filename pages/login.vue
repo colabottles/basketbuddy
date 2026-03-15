@@ -155,7 +155,12 @@ const handleLogin = async () => {
     if (error) throw error
 
     if (data.user) {
-      await router.push('/')
+      await navigateTo('/', { replace: true })
+    }
+
+    if (data.user) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      await navigateTo('/', { replace: true })
     }
   } catch (error: any) {
     generalError.value = error.message || 'Failed to sign in. Please try again.'

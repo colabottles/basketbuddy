@@ -20,7 +20,7 @@ import {
   clearSyncedOperations,
   setLastSyncTime,
   clearAllData
-} from '~/utils/indexedDB'
+} from '~/server/utils/indexedDB'
 import { v4 as uuidv4 } from 'uuid'
 
 export const useListStore = defineStore('lists', () => {
@@ -86,11 +86,8 @@ export const useListStore = defineStore('lists', () => {
         .order('updated_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching lists from Supabase:', error)
         throw error
       }
-
-      console.log('Fetched lists from Supabase:', userLists) // Debug log
 
       if (userLists && userLists.length > 0) {
         for (const list of userLists) {
@@ -854,8 +851,6 @@ export const useListStore = defineStore('lists', () => {
         .select('owner_id, name')
         .eq('id', listId)
         .single<{ owner_id: string, name: string }>()
-
-      console.log('list fetch result:', { list, listError, listId, userId: session.user.id })
 
       if (listError || !list) throw new Error('List not found')
       if (list.owner_id !== session.user.id) throw new Error('Only list owner can share')
