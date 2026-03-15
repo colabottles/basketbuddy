@@ -119,8 +119,9 @@
 
           <section aria-labelledby="contact-heading">
             <h3 id="contact-heading">Contact</h3>
-            <p>Questions about these terms? Contact us at <a href="mailto:todd@toddl.dev"
-                class="legal-link">todd@toddl.dev</a>.</p>
+            <p>Questions about these terms? Contact <a
+                href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                class="legal-link">our Support Team</a>.</p>
           </section>
 
         </div>

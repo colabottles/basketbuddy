@@ -197,8 +197,9 @@
         </div>
 
         <div class="faq-contact">
-          <p>Still have questions? <a href="mailto:todd@toddl.dev" class="faq-contact-link">Get in
-              touch</a>.</p>
+          <p>Still have questions? <a
+              href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+              class="faq-contact-link">Get in touch</a>.</p>
         </div>
 
       </div>

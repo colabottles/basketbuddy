@@ -306,7 +306,8 @@
               </p>
               <p class="settings-description">
                 To manage or cancel your subscription, contact us at
-                <a href="mailto:todd@toddl.dev" class="settings-link">todd@toddl.dev</a>
+                <a href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                  class="settings-link">our Support Team</a>
                 and we'll take care of it right away.
               </p>
             </div>

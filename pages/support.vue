@@ -25,7 +25,8 @@
               <h3 class="support-card-title">Email Support</h3>
               <p class="support-card-text">For account issues, billing questions, or anything else,
                 email us directly. We typically respond within one business day.</p>
-              <a href="mailto:todd@toddl.dev" class="button support-card-cta">Send an Email</a>
+              <a href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                class="button support-card-cta">Contact Support</a>
             </div>
 
             <div class="support-card">
@@ -79,9 +80,9 @@
                 <h4 class="support-issue-title">I was charged but my subscription isn't active</h4>
                 <p class="support-issue-text">This can occasionally happen if there's a delay
                   processing the payment confirmation. Wait a few minutes and refresh the app. If
-                  your subscription still shows as inactive after 15 minutes, email us at <a
-                    href="mailto:todd@toddl.dev" class="legal-link">todd@toddl.dev</a> and we'll
-                  sort it out right away.</p>
+                  your subscription still shows as inactive after 15 minutes, contact us at <a
+                    href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                    class="legal-link">our Support Team</a> and we'll sort it out right away.</p>
               </div>
 
               <div class="support-issue">
@@ -110,8 +111,9 @@
           </section>
 
           <div class="support-contact-footer">
-            <p>Didn't find what you were looking for? Email us at <a href="mailto:todd@toddl.dev"
-                class="legal-link">todd@toddl.dev</a> and we'll help you out.</p>
+            <p>Didn't find what you were looking for? <a
+                href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                class="legal-link">Contact our Support Team</a> and we'll help you out.</p>
           </div>
 
         </div>

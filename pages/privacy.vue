@@ -94,8 +94,9 @@
           <section aria-labelledby="rights-heading">
             <h3 id="rights-heading">Your Rights</h3>
             <p>You have the right to access, correct, export, or delete your personal data at any
-              time. To make a request, contact us at <a href="mailto:todd@toddl.dev"
-                class="legal-link">todd@toddl.dev</a> and we will respond within 30 days.</p>
+              time. To make a request, contact us at <a
+                href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                class="legal-link">our Support Team</a> and we will respond within 30 days.</p>
           </section>
 
           <section aria-labelledby="security-heading">
@@ -123,8 +124,9 @@
 
           <section aria-labelledby="contact-heading">
             <h3 id="contact-heading">Contact</h3>
-            <p>Questions about this policy? Contact us at <a href="mailto:todd@toddl.dev"
-                class="legal-link">todd@toddl.dev</a>.</p>
+            <p>Questions about this policy? Contact <a
+                href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
+                class="legal-link">our Support Team</a>.</p>
           </section>
 
         </div>
