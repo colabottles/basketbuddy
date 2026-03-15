@@ -119,7 +119,13 @@
                     ×
                   </button>
                 </div>
-                <label v-else for="new-item-image-input" class="image-upload-label">
+                <label
+                  v-else
+                  for="new-item-image-input"
+                  class="image-upload-label"
+                  tabindex="0"
+                  @keydown.enter.prevent="newItemImageInput?.click()"
+                  @keydown.space.prevent="newItemImageInput?.click()">
                   <span aria-hidden="true">📷</span> Add Photo
                 </label>
               </div>
@@ -241,7 +247,10 @@
                         <label
                           v-else
                           :for="`image-input-${item.id}`"
-                          class="image-upload-label">
+                          class="image-upload-label"
+                          tabindex="0"
+                          @keydown.enter.prevent="imageInput?.click()"
+                          @keydown.space.prevent="imageInput?.click()">
                           <span aria-hidden="true">📷</span> Add Photo
                         </label>
                       </div>
@@ -1803,6 +1812,12 @@ useHead({
   max-height: 70vh;
   height: auto;
   border-radius: 0.375rem;
+}
+
+.image-upload-label:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
 }
 
 @media (max-width: 640px) {
