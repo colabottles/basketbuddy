@@ -5,16 +5,23 @@ export const useSubscription = () => {
   const loading = ref(true)
 
   const fetchSubscription = async () => {
-    if (!user.value) return
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (!currentUser) {
+      loading.value = false
+      return
+    }
     const { data } = await supabase
       .from('subscriptions')
       .select('plan, status, current_period_end, is_free')
-      .eq('user_id', user.value.id)
+      .eq('user_id', currentUser.id)
       .eq('status', 'active')
       .single()
     subscription.value = data
     loading.value = false
   }
+
+  // Fetch immediately rather than waiting for reactive user
+  fetchSubscription()
 
   const isPaid = computed(() =>
     !!subscription.value && (subscription.value.is_free === true || subscription.value.status === 'active')
@@ -43,8 +50,6 @@ export const useSubscription = () => {
   const isSolo = computed(() => subscription.value?.plan === 'solo')
   const isFamily = computed(() => subscription.value?.plan === 'family')
   const isCancelling = computed(() => subscription.value?.status === 'cancelling')
-
-  onMounted(fetchSubscription)
 
   return {
     subscription,
