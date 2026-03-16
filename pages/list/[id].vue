@@ -2150,12 +2150,26 @@ useHead({
 }
 
 .dialog-actions .button-danger {
-  background-color: var(--color-danger);
+  background-color: #b91c1c;
+  color: white;
+  border: 2px solid #b91c1c;
+}
+
+.dialog-actions .button-danger:hover:not(:disabled) {
+  background-color: #991b1b;
+  border-color: #991b1b;
   color: white;
 }
 
-.dialog-actions .button-danger:hover {
-  background-color: #b91c1c;
+.dialog-actions .button-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.dialog-actions .button-secondary:hover:not(:disabled) {
+  background-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .notification {
@@ -2407,6 +2421,20 @@ useHead({
     padding: var(--spacing-md);
     max-width: calc(100vw - 2rem);
     width: calc(100vw - 2rem);
+    box-sizing: border-box;
+  }
+
+  .dialog-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .dialog-actions .button {
+    flex: 1;
+    min-width: 0;
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-sm);
     box-sizing: border-box;
   }
 
