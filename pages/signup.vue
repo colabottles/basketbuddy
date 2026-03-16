@@ -143,8 +143,8 @@
         </div>
       </div>
     </div>
-    <AppFooter />
   </div>
+  <AppFooter />
 </template>
 
 <script setup lang="ts">
