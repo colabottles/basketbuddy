@@ -45,7 +45,7 @@
   color: var(--color-text-secondary);
   text-decoration: none;
   font-size: var(--font-size-sm);
-  vertical-align: middle;
+  vertical-align: bottom;
   transition: color 0.2s;
 }
 
