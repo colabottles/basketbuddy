@@ -2405,7 +2405,9 @@ useHead({
   .dialog {
     margin: var(--spacing-sm);
     padding: var(--spacing-md);
-    max-width: calc(100vw - var(--spacing-lg));
+    max-width: calc(100vw - 2rem);
+    width: calc(100vw - 2rem);
+    box-sizing: border-box;
   }
 
   .dialog-large {
