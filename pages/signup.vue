@@ -143,8 +143,8 @@
         </div>
       </div>
     </div>
+    <AppFooter />
   </div>
-  <AppFooter />
 </template>
 
 <script setup lang="ts">
@@ -245,3 +245,24 @@ useHead({
   title: 'Sign Up - BasketBuddy'
 })
 </script>
+
+<style scoped>
+.auth-page {
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--spacing-md);
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
