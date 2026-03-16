@@ -100,6 +100,7 @@
                     <span class="action-text">Rename</span>
                   </button>
                   <button
+                    v-if="canShare"
                     @click="openShareDialog(list)"
                     class="button-action button-collab"
                     :aria-label="`Share ${list.name}`">
@@ -271,6 +272,10 @@
           </ul>
         </div>
 
+        <p class="dialog-description" v-else-if="upgradeReason === 'shares_limit'">
+          You've reached the limit of 6 members on the Family plan.
+        </p>
+
         <div class="collab-section">
           <h3 class="collab-subtitle">Share Link</h3>
           <div class="collab-link-group">
@@ -287,6 +292,41 @@
           <button type="button" @click="closeShareDialog" class="button button-secondary">
             Done
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upgrade Dialog -->
+    <div
+      v-if="showUpgradeDialog"
+      class="dialog-overlay"
+      @click="showUpgradeDialog = false"
+      role="dialog"
+      aria-labelledby="upgrade-title"
+      aria-modal="true">
+      <div class="dialog" @click.stop>
+        <h2 id="upgrade-title" class="dialog-title">Upgrade to Continue</h2>
+        <p class="dialog-description" v-if="upgradeReason === 'list'">
+          You've reached the limit of {{ maxLists }} lists on the free plan. Upgrade to Solo for up
+          to 5 lists, or Family for unlimited lists.
+        </p>
+        <p class="dialog-description" v-else>
+          Sharing lists is available on paid plans. Upgrade to Solo or Family to share lists with
+          others.
+        </p>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            @click="showUpgradeDialog = false"
+            class="button button-secondary">
+            Not Now
+          </button>
+          <NuxtLink
+            to="/pricing"
+            class="button button-primary"
+            @click="showUpgradeDialog = false">
+            View Plans
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -337,6 +377,9 @@ const linkCopied = ref(false)
 
 const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
 const pendingInvitations = ref<any[]>([])
+const { maxLists, maxShares, canShare, fetchSubscription, subscription } = useSubscription()
+const showUpgradeDialog = ref(false)
+const upgradeReason = ref('')
 
 onMounted(async () => {
   await loadAvatar()
@@ -374,7 +417,11 @@ watch(showNewListDialog, (show) => {
 
 const handleCreateList = async () => {
   if (!newListName.value.trim() || isCreating.value) return
-
+  if (listStore.lists.length >= maxLists.value) {
+    upgradeReason.value = 'list'
+    showUpgradeDialog.value = true
+    return
+  }
   isCreating.value = true
   try {
     const newList = await listStore.createList?.(newListName.value.trim())
@@ -462,12 +509,27 @@ const shareLink = computed(() => {
 })
 
 const openShareDialog = async (list: GroceryList) => {
+  if (!canShare.value) {
+    upgradeReason.value = 'share'
+    showUpgradeDialog.value = true
+    return
+  }
   sharingList.value = list
   showShareDialog.value = true
   isLoadingShares.value = true
   try {
     const shares = await listStore.getListShares?.(list.id)
     listShares.value = shares || []
+
+    if (subscription.value?.plan === 'family' && !subscription.value?.is_free) {
+      const activeShares = listShares.value.filter(s => s.user_id)
+      if (activeShares.length >= maxShares.value) {
+        upgradeReason.value = 'shares_limit'
+        showUpgradeDialog.value = true
+        showShareDialog.value = false
+        return
+      }
+    }
   } catch (error) {
     console.error('Error loading shares:', error)
   } finally {

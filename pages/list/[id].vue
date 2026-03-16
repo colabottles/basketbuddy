@@ -10,7 +10,7 @@
     <AppHeader
       :title="listStore.currentList?.name || 'BasketBuddy'"
       show-back
-      show-share
+      :show-share="canShare"
       :show-offline="!listStore.isOnline"
       :is-logging-out="isLoggingOut"
       :avatar-url="avatarUrl"
@@ -691,6 +691,7 @@ const viewingImage = ref<string | null>(null)
 const viewingImageAlt = ref<string>('')
 const listShares = ref<any[]>([])
 const isLoadingShares = ref(false)
+const { canShare } = useSubscription()
 const shareEmail = ref('')
 const sharePermission = ref<'view' | 'edit'>('edit')
 const isSharingList = ref(false)

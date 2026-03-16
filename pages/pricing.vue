@@ -33,6 +33,37 @@
 
         <div class="pricing-grid">
 
+          <!-- Free -->
+          <div class="pricing-card">
+            <div class="pricing-card-header">
+              <h3 class="plan-name">Free</h3>
+              <div class="plan-price">
+                <span class="price-amount">$0</span>
+                <span class="price-period">/ forever</span>
+              </div>
+              <p class="plan-price-note">No credit card required</p>
+            </div>
+            <ul class="plan-features" role="list">
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> Up to
+                2 lists</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> No
+                sharing</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                Real-time sync</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                Offline support (PWA)</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                Rewards card storage</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> WCAG
+                2.2 AA accessible</li>
+            </ul>
+            <NuxtLink
+              to="/signup"
+              class="button button-secondary plan-cta">
+              Get Started Free
+            </NuxtLink>
+          </div>
+
           <!-- Solo -->
           <div class="pricing-card">
             <div class="pricing-card-header">
@@ -46,10 +77,10 @@
               <p class="plan-price-note" v-else>Billed monthly</p>
             </div>
             <ul class="plan-features" role="list">
-              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> 1
-                user</li>
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> Up to
                 5 lists</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> List
+                sharing</li>
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
                 Real-time sync</li>
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
@@ -82,9 +113,9 @@
             </div>
             <ul class="plan-features" role="list">
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> Up to
+                12 lists</li>
+              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> Up to
                 6 members</li>
-              <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
-                Unlimited lists</li>
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
                 Real-time sync</li>
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
@@ -102,7 +133,47 @@
             </button>
           </div>
 
-        </div>
+            <!-- Super User - Coming Soon -->
+            <div class="pricing-card pricing-card-coming-soon">
+              <div class="pricing-card-badge pricing-card-badge-coming-soon">Coming Soon</div>
+              <div class="pricing-card-header">
+                <h3 class="plan-name">Super User</h3>
+                <div class="plan-price">
+                  <span class="price-amount">{{ billing === 'monthly' ? '$20' : '$200' }}</span>
+                  <span class="price-period">{{ billing === 'monthly' ? '/ month' : '/ year' }}</span>
+                </div>
+                <p class="plan-price-note" v-if="billing === 'annual'">Billed annually — save $40 vs
+                  monthly</p>
+                <p class="plan-price-note" v-else>Billed monthly</p>
+              </div>
+              <ul class="plan-features" role="list">
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Unlimited lists</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Unlimited members</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> Item
+                  price tracking</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Running total per list</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Budget calculator</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Priority support</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Real-time sync</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span>
+                  Offline support (PWA)</li>
+                <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> WCAG
+                  2.2 AA accessible</li>
+              </ul>
+              <button
+                class="button plan-cta plan-cta-disabled"
+                disabled
+                aria-disabled="true">
+                Coming Soon
+              </button>
+            </div>
+          </div>
 
         <p v-if="error" class="checkout-error" role="alert">{{ error }}</p>
 
@@ -186,7 +257,7 @@ const checkout = async (priceKey: string) => {
   display: inline-flex;
   background-color: var(--color-surface);
   border: 2px solid var(--color-primary);
-  border-radius: 9999px;
+  border-radius: 10px;
   padding: 4px;
   gap: 4px;
   box-shadow: 0 0 0 4px rgba(102, 38, 175, 0.1);
@@ -197,7 +268,7 @@ const checkout = async (priceKey: string) => {
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-xl);
-  border-radius: 9999px;
+  border-radius: 10px;
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
@@ -235,10 +306,36 @@ const checkout = async (priceKey: string) => {
 /* Grid */
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: var(--spacing-lg);
-  max-width: 800px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--spacing-md);
+  max-width: 1100px;
   margin: 0 auto var(--spacing-xl);
+}
+
+@media (max-width: 640px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-card {
+    padding: var(--spacing-md);
+  }
+
+  .price-amount {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* Cards */
@@ -266,7 +363,7 @@ const checkout = async (priceKey: string) => {
   background-color: var(--color-primary);
   color: #fff;
   padding: 4px 16px;
-  border-radius: 9999px;
+  border-radius: 10px;
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
@@ -362,5 +459,26 @@ const checkout = async (priceKey: string) => {
   .pricing-card {
     padding: var(--spacing-lg);
   }
+}
+
+.pricing-card-coming-soon {
+  border-color: var(--color-border);
+  opacity: 0.75;
+  filter: grayscale(0.3);
+}
+
+.pricing-card-badge-coming-soon {
+  background-color: var(--color-text-secondary);
+}
+
+.plan-cta-disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.plan-cta-disabled:hover {
+  transform: none;
 }
 </style>
