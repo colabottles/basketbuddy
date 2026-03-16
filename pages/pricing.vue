@@ -57,7 +57,14 @@
               <li class="feature-item"><span class="feature-check" aria-hidden="true">✓</span> WCAG
                 2.2 AA accessible</li>
             </ul>
+            <button
+              v-if="subscription"
+              @click="showDowngradeDialog = true"
+              class="button button-secondary plan-cta">
+              Downgrade to Free
+            </button>
             <NuxtLink
+              v-else
               to="/signup"
               class="button button-secondary plan-cta">
               Get Started Free
@@ -180,6 +187,49 @@
       </div>
     </main>
 
+    <div
+      v-if="showDowngradeDialog"
+      class="dialog-overlay"
+      @click="showDowngradeDialog = false"
+      role="alertdialog"
+      aria-labelledby="downgrade-title"
+      aria-describedby="downgrade-description"
+      aria-modal="true">
+      <div class="dialog" @click.stop>
+        <h2 id="downgrade-title" class="dialog-title">Downgrade to Free?</h2>
+        <div id="downgrade-description">
+          <p class="dialog-description">
+            Your current plan will remain active until the end of your billing period. After that,
+            your account will switch to the Free plan with the following limits:
+          </p>
+          <ul class="downgrade-list">
+            <li>Maximum 2 lists (existing lists are kept but you cannot create new ones until you're
+              under the limit)</li>
+            <li>No list sharing — shared lists will become view-only for collaborators</li>
+            <li>No price tracking or budget features</li>
+          </ul>
+          <p class="dialog-description">Are you sure you want to downgrade?</p>
+        </div>
+        <div v-if="downgradeError" class="error-message" role="alert">
+          {{ downgradeError }}
+        </div>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            @click="showDowngradeDialog = false"
+            class="button button-secondary">
+            Keep My Plan
+          </button>
+          <button
+            @click="handleDowngrade"
+            class="button button-danger"
+            :disabled="isDowngrading">
+            {{ isDowngrading ? 'Processing...' : 'Yes, Downgrade' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <AppFooter />
 
   </div>
@@ -197,6 +247,10 @@ const supabase = useSupabase()
 const billing = ref<'monthly' | 'annual'>('monthly')
 const loading = ref(false)
 const error = ref('')
+const { subscription, canShare, maxLists } = useSubscription()
+const showDowngradeDialog = ref(false)
+const isDowngrading = ref(false)
+const downgradeError = ref('')
 
 const config = useRuntimeConfig()
 const priceIds: Record<string, string> = {
@@ -228,6 +282,26 @@ const checkout = async (priceKey: string) => {
     error.value = 'Something went wrong. Please try again.'
   } finally {
     loading.value = false
+  }
+}
+
+const handleDowngrade = async () => {
+  isDowngrading.value = true
+  downgradeError.value = ''
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return navigateTo('/login')
+
+    await $fetch('/api/stripe/cancel', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` }
+    })
+    showDowngradeDialog.value = false
+    await navigateTo('/settings')
+  } catch (e: any) {
+    downgradeError.value = e.message || 'Failed to downgrade. Please contact support.'
+  } finally {
+    isDowngrading.value = false
   }
 }
 </script>
@@ -480,5 +554,16 @@ const checkout = async (priceKey: string) => {
 
 .plan-cta-disabled:hover {
   transform: none;
+}
+
+.downgrade-list {
+  margin: 0 0 var(--spacing-md);
+  padding-left: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 </style>

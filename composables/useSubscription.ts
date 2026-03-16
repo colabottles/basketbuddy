@@ -42,6 +42,7 @@ export const useSubscription = () => {
   const isActive = computed(() => !!subscription.value?.status === true)
   const isSolo = computed(() => subscription.value?.plan === 'solo')
   const isFamily = computed(() => subscription.value?.plan === 'family')
+  const isCancelling = computed(() => subscription.value?.status === 'cancelling')
 
   onMounted(fetchSubscription)
 
@@ -52,6 +53,7 @@ export const useSubscription = () => {
     isActive,
     isSolo,
     isFamily,
+    isCancelling,
     maxLists,
     maxShares,
     canShare,

@@ -304,6 +304,11 @@
               <p class="settings-value" v-if="subscription.is_free">
                 <strong>Billing:</strong> Free forever
               </p>
+              <p v-if="isCancelling" class="settings-description"
+                style="color: var(--color-danger)">
+                Your subscription is set to cancel at the end of your billing period on {{
+                  formatDate(subscription.current_period_end) }}.
+              </p>
               <p class="settings-description">
                 To manage or cancel your subscription, contact us at
                 <a href="mailto:&#116;&#111;&#100;&#100;&#64;&#116;&#111;&#100;&#100;&#108;&#46;&#100;&#101;&#118;"
@@ -416,13 +421,7 @@ const showEmailForm = ref(false)
 const isChangingEmail = ref(false)
 const emailChangeError = ref('')
 const emailChangeSuccess = ref('')
-const subscription = ref<{
-  plan: string
-  status: string
-  current_period_end: string
-  is_free: boolean
-} | null>(null)
-const subscriptionLoading = ref(true)
+const { subscription, loading: subscriptionLoading, isCancelling, fetchSubscription } = useSubscription()
 const showDeleteConfirm = ref(false)
 const isDeletingAccount = ref(false)
 const deleteAccountError = ref('')
@@ -611,16 +610,6 @@ onMounted(async () => {
   if (user) {
     userEmail.value = user.email || ''
     avatarUrl.value = user.user_metadata?.avatar_url || ''
-
-    const { data } = await supabase
-      .from('subscriptions')
-      .select('plan, status, current_period_end, is_free')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single()
-
-    subscription.value = data
-    subscriptionLoading.value = false
   }
 })
 
