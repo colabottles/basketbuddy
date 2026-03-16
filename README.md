@@ -2,7 +2,7 @@
 
 > A privacy-first, accessible collaborative grocery list app. No ads. No tracking. No data selling. Ever.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-badge-id/deploy-status)](https://basketbuddyapp.netlify.app)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0e5fe052-0420-48c0-b95a-d031caf7d271/deploy-status)](https://app.netlify.com/projects/basketbuddyapp/deploys)
 [![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2%20AA-green)](https://www.w3.org/TR/WCAG22/)
 [![Built with Nuxt](https://img.shields.io/badge/Built%20with-Nuxt%204-00DC82)](https://nuxt.com)
 
