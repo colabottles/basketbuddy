@@ -1,177 +1,219 @@
-# Supabase CLI
+# 🛒 BasketBuddy
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+> A privacy-first, accessible collaborative grocery list app. No ads. No tracking. No data selling. Ever.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/your-badge-id/deploy-status)](https://basketbuddyapp.netlify.app)
+[![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2%20AA-green)](https://www.w3.org/TR/WCAG22/)
+[![Built with Nuxt](https://img.shields.io/badge/Built%20with-Nuxt%204-00DC82)](https://nuxt.com)
 
-This repository contains all the functionality for Supabase CLI.
+**Live app:** [basketbuddyapp.netlify.app](https://basketbuddyapp.netlify.app)
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+---
 
-## Getting started
+## What is BasketBuddy?
 
-### Install the CLI
+BasketBuddy is a collaborative grocery list web app built for real people. Create lists, share them with family or housemates, sync in real time, and use it offline — all without being tracked, shown ads, or having your data sold to third parties.
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+---
 
-```bash
-npm i supabase --save-dev
-```
+## Features
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+- **Real-time sync** — changes appear instantly across all devices
+- **Offline support** — works as a PWA, functions without an internet connection
+- **List sharing** — invite others by email to view or edit your lists
+- **Rewards card storage** — save your store loyalty cards in one place
+- **Item photos** — attach photos to list items so the right product gets bought
+- **Categories** — organise items into colour-coded categories
+- **Drag to reorder** — sort list items by drag and drop
+- **Pull to refresh** — mobile-native refresh gesture
+- **Dark and light mode** — respects system preference, toggleable manually
+- **WCAG 2.2 AA accessible** — keyboard navigable, screen reader friendly, high contrast
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+---
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+## Plans
 
-<details>
-  <summary><b>macOS</b></summary>
+| Plan | Lists | Members | Sharing | Price |
+| ------ | ------- | --------- | --------- | ------- |
+| Free | 2 | 1 | No | $0 |
+| Solo | 5 | 1 | Yes | $4/mo or $40/yr |
+| Family | 12 | 6 | Yes | $8/mo or $80/yr |
+| Super User *(coming soon)* | Unlimited | Unlimited | Yes | $20/mo or $200/yr |
 
-  Available via [Homebrew](https://brew.sh). To install:
+---
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+## Tech Stack
 
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
+| Layer | Technology |
+| ------- | ----------- |
+| Framework | [Nuxt 4](https://nuxt.com) + [Vue 3](https://vuejs.org) |
+| Language | TypeScript |
+| Database | [Supabase](https://supabase.com) (PostgreSQL) |
+| Auth | Supabase Auth |
+| Payments | [Stripe](https://stripe.com) |
+| Hosting | [Netlify](https://netlify.com) |
+| State | [Pinia](https://pinia.vuejs.org) |
+| Offline | IndexedDB + Workbox PWA |
+| Email | Proton Mail SMTP |
 
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
+---
 
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+## Architecture
 
 ```bash
-supabase bootstrap
+basketbuddy/
+├── app/
+│   ├── components/        # AppHeader, AppFooter
+│   ├── composables/       # useSubscription, useLogout, useUserAvatar, useTheme
+│   ├── middleware/        # auth, guest, requireSubscription
+│   ├── pages/             # index, list/[id], pricing, settings, rewards, faq, privacy, terms, support, signup, login
+│   └── assets/css/        # main.css (design tokens, global styles)
+├── server/
+│   ├── api/
+│   │   ├── stripe/        # checkout.post.ts, webhook.post.ts, cancel.post.ts
+│   │   ├── account/       # delete.post.ts
+│   │   └── share-invite.post.ts
+│   └── utils/             # rateLimit.ts, indexedDB.ts
+├── stores/                # listStore.ts, rewardsStore.ts
+└── types/                 # models.ts, database.types.ts
 ```
 
-Or using npx:
+---
 
-```bash
-npx supabase bootstrap
-```
+## Security
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+- Row Level Security (RLS) on all Supabase tables
+- Stripe webhook signature verification
+- Rate limiting on all API routes
+- Input validation and HTML sanitisation on server routes
+- Content Security Policy headers
+- HSTS, X-Frame-Options, X-Content-Type-Options headers
+- Service role key server-side only, never exposed to the client
 
-## Docs
+---
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## Accessibility
 
-## Breaking changes
+BasketBuddy is built to meet WCAG 2.2 AA standards throughout. See the full [Accessibility Statement](ACCESSIBILITY.md) for details.
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+---
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+## Release Notes
 
-## Developing
+All major features, milestones, and changes to BasketBuddy are documented here.
 
-To run from source:
+---
 
-```sh
-# Go >= 1.22
-go run . help
-```
+## v1.0.0 — Initial Public Release
+
+### March 2026
+
+### 🚀 Launch
+
+BasketBuddy launches as a production-ready, privacy-first collaborative grocery list app.
+
+### Core Features
+
+- **Grocery list management** — create, rename, delete, and reorder lists
+- **List items** — add, edit, delete, check off, and drag to reorder items
+- **Item categories** — color-coded category chips for organizing items
+- **Item photos** — attach photos to list items
+- **Item notes** — add notes to individual items
+- **Real-time collaboration** — share lists with others via email invitation
+- **Rewards cards** — store loyalty card numbers with reveal/hide toggle
+- **Pull to refresh** — native mobile gesture support
+- **Offline support** — full PWA with IndexedDB caching and sync queue
+- **Dark/light mode** — system preference detection with manual toggle
+
+### Authentication
+
+- Email and password sign up and sign in
+- Email confirmation flow
+- Password change and reset
+- Email address change with confirmation
+- Avatar upload and removal
+- Account deletion
+
+### Subscriptions
+
+- Stripe-powered subscription management
+- Solo plan ($4/month or $40/year) — up to 5 lists, list sharing
+- Family plan ($8/month or $80/year) — up to 12 lists, up to 6 members
+- Free tier — up to 2 lists, no sharing
+- Free forever accounts (manually granted, unlimited access)
+- Promo/coupon code support at checkout
+- Subscription status visible in account settings
+- Downgrade to free at end of billing period
+- Webhook-driven subscription lifecycle management
+
+### Plan Enforcement
+
+- Free tier gated to 2 lists with upgrade prompt on limit
+- Sharing disabled on free tier
+- Family plan limited to 6 members per list
+- Grandfathering of existing lists on downgrade
+
+### Pages
+
+- My Lists (home)
+- List detail with full item management
+- Pricing with monthly/annual toggle and plan comparison
+- Settings (profile, email, password, subscription, account deletion)
+- Rewards cards
+- FAQ with accessible accordion
+- Privacy Policy
+- Terms of Service
+- Support
+- Sign up / Sign in
+
+### Accessibility Implementations
+
+- WCAG 2.2 AA compliant throughout
+- Semantic HTML5 landmarks on every page
+- Full keyboard navigation
+- Screen reader tested
+- Skip to main content link
+- Focus management on dialogs
+- ARIA roles, labels, and live regions
+- Reduced motion support
+- High contrast mode support
+- Minimum 44×44px touch targets
+
+### Security Checks
+
+- Row Level Security on all Supabase tables
+- Stripe webhook signature verification
+- Rate limiting on checkout and share invite endpoints
+- Input validation and HTML sanitisation on all server routes
+- Content Security Policy headers
+- HSTS, referrer policy, permissions policy, X-Frame-Options headers
+- Service role key server-side only
+
+### Infrastructure
+
+- Nuxt 4 with SSR disabled (client-side PWA)
+- Supabase (PostgreSQL + Auth + Storage + Realtime)
+- Stripe (payments, subscriptions, webhooks)
+- Netlify (hosting, edge functions, environment variables)
+- Proton Mail SMTP for transactional email
+
+---
+
+## Upcoming
+
+### v1.1.0 — Super User Plan *(planned)*
+
+- Unlimited lists and members
+- Item price tracking (quantity × price per item)
+- Running total per list
+- Budget calculator per list
+- Priority support
+- $20/month or $200/year
+
+### Future Considerations
+
+- Recipe import
+- Multiple household management
+- Export lists to PDF/CSV
+- Voice input
+- Apple Watch / wearable support
