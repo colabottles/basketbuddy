@@ -31,4 +31,14 @@ useHead({
     { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }
   ]
 })
+
+onMounted(() => {
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.message?.includes('Failed to fetch dynamically imported module') ||
+      event.reason?.message?.includes('Loading chunk') ||
+      event.reason?.message?.includes('Loading failed for the module')) {
+      window.location.reload()
+    }
+  })
+})
 </script>
