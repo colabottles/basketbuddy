@@ -5,15 +5,15 @@ export const useSubscription = () => {
   const loading = ref(true)
 
   const fetchSubscription = async () => {
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
       loading.value = false
       return
     }
     const { data } = await supabase
       .from('subscriptions')
       .select('plan, status, current_period_end, is_free')
-      .eq('user_id', currentUser.id)
+      .eq('user_id', session.user.id)
       .eq('status', 'active')
       .single()
     subscription.value = data
