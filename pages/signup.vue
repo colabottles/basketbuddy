@@ -265,4 +265,8 @@ useHead({
   align-items: center;
   justify-content: center;
 }
+
+.auth-card input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 9999px #1e293b inset;
+}
 </style>

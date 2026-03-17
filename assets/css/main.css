@@ -77,6 +77,7 @@
 
 /* Dark Mode */
 :root.dark {
+  color-scheme: dark;
   --color-primary: #6626AF;
   --color-primary-dark: #52208A;
   --color-primary-light: #9B5FD4;
@@ -92,6 +93,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
+    color-scheme: dark;
     --color-primary: #6626AF;
     --color-primary-dark: #52208A;
     --color-primary-light: #9B5FD4;
@@ -368,7 +370,6 @@ body {
   line-height: 1.5;
   transition: border-color 0.2s;
   box-sizing: border-box;
-  /* Exception: inputs need border-box to maintain consistent width */
 }
 
 .input:focus {
@@ -379,6 +380,42 @@ body {
 
 .input[aria-invalid="true"] {
   border-color: var(--color-danger);
+}
+
+/* Fix input backgrounds in dark mode — Android Chrome autofill override */
+input,
+textarea,
+select {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  color-scheme: light;
+}
+
+:root.dark input,
+:root.dark textarea,
+:root.dark select,
+:root:not(.light) input,
+:root:not(.light) textarea,
+:root:not(.light) select {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  color-scheme: dark;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+}
+
+/* Android Chrome autofill injection fix */
+:root.dark input:-webkit-autofill,
+:root.dark input:-webkit-autofill:hover,
+:root.dark input:-webkit-autofill:focus,
+:root.dark input:-webkit-autofill:active,
+:root:not(.light) input:-webkit-autofill,
+:root:not(.light) input:-webkit-autofill:hover,
+:root:not(.light) input:-webkit-autofill:focus,
+:root:not(.light) input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 9999px var(--color-background) inset;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
 }
 
 /* Prevent iOS zoom on input focus */
