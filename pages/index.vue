@@ -1,1426 +1,1650 @@
 <template>
-  <div class="app-container">
-    <AppHeader
-      title="BasketBuddy"
-      :is-logging-out="isLoggingOut"
-      :avatar-url="avatarUrl"
-      :user-initials="userInitials"
-      @logout="handleLogout" />
+  <div class="landing">
 
-    <main id="main-content" class="main-content">
-      <div class="container">
-        <p class="pull-hint" aria-live="polite">
-          <span aria-hidden="true">↓</span> Pull down to refresh
-        </p>
-        <section aria-labelledby="lists-heading">
-          <div class="section-header">
-            <h2 id="lists-heading" class="section-title">My Lists</h2>
-            <button
-              @click="showNewListDialog = true"
-              class="button button-primary">
-              New List
-            </button>
-          </div>
+    <!-- Skip link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-          <div v-if="isLoading" class="loading-state">
-            <div class="spinner"></div>
-            <p class="loading-text">Loading your lists...</p>
-          </div>
-
-          <div v-else-if="!listStore.lists || listStore.lists.length === 0" class="empty-state">
-            <p class="empty-text">No lists yet. Create your first grocery list!</p>
-          </div>
-
-          <!-- Pending Invitations -->
-          <div v-if="pendingInvitations.length > 0" class="invitations-section">
-            <h2 class="section-subtitle">Pending Invitations</h2>
-            <ul class="invitations-list">
-              <li v-for="invite in pendingInvitations" :key="invite.id" class="invitation-card">
-                <div class="invitation-info">
-                  <h3 class="invitation-title">{{ invite.lists?.name || 'Shared List' }}</h3>
-                  <p class="invitation-meta">
-                    Shared with {{ invite.permission_level }} access
-                  </p>
-                </div>
-                <button
-                  @click="acceptInvitation(invite.list_id, invite.lists?.name)"
-                  class="button button-primary button-small">
-                  Accept
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <template v-else>
-            <ul class="lists-grid" role="list">
-              <li v-for="list in listStore.lists" :key="list.id" class="list-card">
-                <div class="list-card-body">
-                  <h3 class="list-name">{{ list.name }}</h3>
-                  <p class="list-meta">
-                    Updated {{ formatDate(list.updated_at) }}
-                  </p>
-                  <p class="list-owner-badge" v-if="list.owner_id !== currentUserId">
-                    Shared with you
-                  </p>
-                </div>
-                <div class="list-actions">
-                  <button
-                    @click="router.push(`/list/${list.id}`)"
-                    class="button-action button-edit"
-                    :aria-label="`Edit ${list.name}`">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    <span class="action-text">Edit</span>
-                  </button>
-                  <button
-                    @click="openRenameDialog(list)"
-                    class="button-action button-rename"
-                    :aria-label="`Rename ${list.name}`">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true">
-                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                    </svg>
-                    <span class="action-text">Rename</span>
-                  </button>
-                  <button
-                    v-if="canShare"
-                    @click="openShareDialog(list)"
-                    class="button-action button-collab"
-                    :aria-label="`Share ${list.name}`">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    <span class="action-text">Share</span>
-                  </button>
-                  <button
-                    @click="confirmDelete(list)"
-                    class="button-action button-danger"
-                    :aria-label="`Delete ${list.name}`">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true">
-                      <path d="M3 6h18"></path>
-                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                      <line x1="10" y1="11" x2="10" y2="17"></line>
-                      <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                    <span class="action-text">Delete</span>
-                  </button>
-                </div>
-              </li>
-            </ul>
-          </template>
-        </section>
-      </div>
-    </main>
-
-    <!-- New List Dialog -->
-    <div v-if="showNewListDialog" class="dialog-overlay" @click="closeNewListDialog" role="dialog"
-      aria-labelledby="new-list-title" aria-modal="true">
-      <div class="dialog" @click.stop>
-        <h2 id="new-list-title" class="dialog-title">Create New List</h2>
-        <form @submit.prevent="handleCreateList">
-          <div class="form-group">
-            <label for="list-name" class="form-label">
-              List Name
-              <span aria-hidden="false">*</span>
-            </label>
-            <input id="list-name" ref="newListInput" v-model="newListName" type="text" class="input"
-              required aria-required="true" placeholder="e.g., Weekly Shopping" />
-          </div>
-          <div class="dialog-actions">
-            <button type="button" @click="closeNewListDialog" class="button button-secondary">
-              Cancel
-            </button>
-            <button type="submit" class="button button-primary"
-              :disabled="!newListName.trim() || isCreating">
-              Create
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Dialog -->
-    <div v-if="listToDelete" class="dialog-overlay" @click="cancelDelete" role="alertdialog"
-      aria-labelledby="delete-title" aria-describedby="delete-description" aria-modal="true">
-      <div class="dialog" @click.stop>
-        <h2 id="delete-title" class="dialog-title">Delete List?</h2>
-        <p id="delete-description" class="dialog-description">
-          Are you sure you want to delete "{{ listToDelete.name }}"? This action cannot be undone.
-        </p>
-        <div class="dialog-actions">
-          <button type="button" @click="cancelDelete" class="button button-secondary">
-            Cancel
-          </button>
-          <button @click="handleDeleteList" class="button delete-button" :disabled="isDeleting">
-            Delete
-          </button>
+    <!-- ========================
+         NAV
+    ========================= -->
+    <header class="landing-nav" role="banner">
+      <div class="landing-container nav-inner">
+        <a href="/" class="nav-logo" aria-label="BasketBuddy home">
+          <img src="/logo.svg" alt="" aria-hidden="true" width="36" height="36" />
+          <span class="nav-logo-text">BasketBuddy</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <ul class="nav-links" role="list">
+            <li><a href="#features" class="nav-link">Features</a></li>
+            <li><a href="#pricing" class="nav-link">Pricing</a></li>
+            <li><a href="#faq" class="nav-link">FAQ</a></li>
+          </ul>
+        </nav>
+        <div class="nav-cta">
+          <NuxtLink to="/login" class="button button-secondary nav-btn-login">Log in</NuxtLink>
+          <NuxtLink to="/signup" class="button nav-btn-signup">Get started</NuxtLink>
         </div>
+        <!-- Mobile menu button -->
+        <button
+          class="nav-mobile-toggle"
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="mobile-menu"
+          aria-label="Toggle navigation menu"
+          @click="mobileMenuOpen = !mobileMenuOpen">
+          <span class="hamburger-line" aria-hidden="true"></span>
+          <span class="hamburger-line" aria-hidden="true"></span>
+          <span class="hamburger-line" aria-hidden="true"></span>
+        </button>
       </div>
-    </div>
 
-    <!-- Rename List Dialog -->
-    <div v-if="listToRename" class="dialog-overlay" @click="closeRenameDialog" role="dialog"
-      aria-labelledby="rename-title" aria-modal="true">
-      <div class="dialog" @click.stop>
-        <h2 id="rename-title" class="dialog-title">Rename List</h2>
-        <form @submit.prevent="handleRenameList">
-          <div class="form-group">
-            <label for="rename-list-name" class="form-label">
-              List Name
-              <span aria-hidden="true">*</span>
-            </label>
-            <input id="rename-list-name" v-model="newListName" type="text" class="input" required
-              aria-required="true" placeholder="e.g., Weekly Shopping" />
-          </div>
-          <div class="dialog-actions">
-            <button type="button" @click="closeRenameDialog" class="button button-secondary">
-              Cancel
-            </button>
-            <button type="submit" class="button button-primary"
-              :disabled="!newListName.trim() || isRenaming">
-              {{ isRenaming ? 'Renaming...' : 'Rename' }}
-            </button>
-          </div>
-        </form>
+      <!-- Mobile menu -->
+      <div
+        id="mobile-menu"
+        class="mobile-menu"
+        :class="{ 'mobile-menu--open': mobileMenuOpen }"
+        :aria-hidden="!mobileMenuOpen">
+        <nav aria-label="Mobile navigation">
+          <ul role="list">
+            <li><a href="#features" class="mobile-nav-link"
+                @click="mobileMenuOpen = false">Features</a></li>
+            <li><a href="#pricing" class="mobile-nav-link"
+                @click="mobileMenuOpen = false">Pricing</a></li>
+            <li><a href="#faq" class="mobile-nav-link" @click="mobileMenuOpen = false">FAQ</a></li>
+            <li>
+              <NuxtLink to="/login" class="mobile-nav-link" @click="mobileMenuOpen = false">Log in
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/signup" class="button mobile-nav-cta" @click="mobileMenuOpen = false">
+                Get started free
+              </NuxtLink>
+            </li>
+          </ul>
+        </nav>
       </div>
-    </div>
+    </header>
 
-    <!-- Share List Dialog -->
-    <div v-if="showShareDialog" class="dialog-overlay" @click="closeShareDialog" role="dialog"
-      aria-labelledby="collab-title" aria-modal="true">
-      <div class="dialog dialog-large" @click.stop>
-        <h2 id="collab-title" class="dialog-title">Share "{{ sharingList?.name }}"</h2>
-        <p class="dialog-description">
-          Invite others to view or edit this list with you.
-        </p>
+    <main id="main-content">
 
-        <div class="collab-form">
-          <h3 class="collab-subtitle">Invite by Email</h3>
-          <div class="collab-input-group">
-            <input v-model="shareEmail" type="email" class="input" placeholder="Enter email address"
-              @keyup.enter="handleShareList" />
-            <select v-model="sharePermission" class="input collab-permission-select">
-              <option value="edit">Can Edit</option>
-              <option value="view">Can View</option>
-            </select>
-            <button @click="handleShareList" class="button button-primary"
-              :disabled="!shareEmail.trim() || isSharingList">
-              {{ isSharingList ? 'Sending...' : 'Send Invite' }}
-            </button>
+      <!-- ========================
+           HERO
+      ========================= -->
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="landing-container hero-inner">
+          <div class="hero-content">
+            <p class="hero-eyebrow" aria-hidden="true">Grocery shopping, simplified</p>
+            <h1 id="hero-heading" class="hero-heading">
+              Your whole family, <br class="hero-br" />
+              <span class="hero-heading-accent">one list.</span>
+            </h1>
+            <p class="hero-body">
+              BasketBuddy keeps your grocery lists in sync across everyone in your household — in
+              real time, without the chaos.
+            </p>
+            <div class="hero-actions">
+              <NuxtLink to="/signup" class="button hero-cta-primary">
+                Start for free
+              </NuxtLink>
+              <a href="#features" class="hero-cta-secondary">
+                See how it works
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3l5 5-5 5M3 8h10" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            </div>
+            <p class="hero-note">Free forever for solo use. Family plan from $4/mo.</p>
           </div>
-        </div>
 
-        <div v-if="listShares.length > 0" class="shares-list">
-          <h3 class="collab-subtitle">People with Access</h3>
-          <div v-if="isLoadingShares" class="loading-shares">
-            <div class="spinner-small"></div>
-            <span>Loading...</span>
-          </div>
-          <ul v-else class="shares-items">
-            <li v-for="share in listShares" :key="share.id" class="collab-item">
-              <div class="collab-info">
-                <span class="collab-email">{{ share.invited_email || 'User' }}</span>
-                <span class="collab-permission-label">
-                  {{ share.permission_level === 'edit' ? 'Can Edit' : 'Can View' }}
-                </span>
-                <span v-if="!share.user_id" class="collab-pending">Pending</span>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="phone-mockup">
+              <div class="phone-screen">
+                <div class="mockup-categories-row">
+                  <span class="mockup-categories-label">Categories</span>
+                  <span class="mockup-add-category-btn">Add Category</span>
+                </div>
+                <div class="mockup-input-row">
+                  <span class="mockup-input-field">Add an item...</span>
+                  <span class="mockup-add-photo-btn">Add Photo</span>
+                  <span class="mockup-add-btn">Add</span>
+                </div>
+                <p class="mockup-section-label" aria-hidden="true">TO BUY</p>
+                <ul class="mockup-list" role="presentation">
+                  <li class="mockup-item">
+                    <span class="mockup-circle"></span>
+                    <span>Olive oil</span>
+                  </li>
+                  <li class="mockup-item">
+                    <span class="mockup-circle"></span>
+                    <span>Cherry tomatoes</span>
+                  </li>
+                  <li class="mockup-item">
+                    <span class="mockup-circle"></span>
+                    <span>Pasta</span>
+                  </li>
+                </ul>
+                <p class="mockup-section-label" aria-hidden="true">COMPLETED</p>
+                <ul class="mockup-list" role="presentation">
+                  <li class="mockup-item mockup-item--done">
+                    <span class="mockup-check"></span>
+                    <span>Sourdough bread</span>
+                  </li>
+                  <li class="mockup-item mockup-item--done">
+                    <span class="mockup-check"></span>
+                    <span>Greek yogurt</span>
+                  </li>
+                </ul>
               </div>
-              <button @click="handleRemoveShare(share.id, share.invited_email)"
-                class="button-icon button-danger"
-                :aria-label="`Remove access for ${share.invited_email}`">
-                <span aria-hidden="true">×</span>
-              </button>
+            </div>
+            <div class="hero-blob" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================
+           FEATURES
+      ========================= -->
+      <section id="features" class="features" aria-labelledby="features-heading">
+        <div class="landing-container">
+          <div class="section-header">
+            <h2 id="features-heading" class="section-heading">Everything you need, nothing you don't
+            </h2>
+            <p class="section-subheading">Built for real households — not productivity apps
+              pretending to be grocery lists.</p>
+          </div>
+
+          <ul class="features-grid" role="list">
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor"
+                    stroke-width="1.75" stroke-linecap="round" />
+                  <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.75" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor"
+                    stroke-width="1.75" stroke-linecap="round" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Shared family lists</h3>
+              <p class="feature-body">Invite your household with a single link. Everyone sees the
+                same list, updated the moment anything changes.</p>
+            </li>
+
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor"
+                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Real-time sync</h3>
+              <p class="feature-body">Check off milk in the dairy aisle — your partner's phone
+                updates instantly. No more duplicate purchases.</p>
+            </li>
+
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor"
+                    stroke-width="1.75" />
+                  <path d="M9 7h6M9 11h6M9 15h4" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Multiple lists</h3>
+              <p class="feature-body">Weekly groceries, a holiday meal, a birthday party haul — keep
+                them all organized and separate.</p>
+            </li>
+
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor"
+                    stroke-width="1.75" stroke-linejoin="round" />
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Works offline</h3>
+              <p class="feature-body">Poor signal at the store? BasketBuddy keeps working. Changes
+                sync automatically when you're back online.</p>
+            </li>
+
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.75" />
+                  <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Purchase history</h3>
+              <p class="feature-body">Can't remember if you bought it last week? Your history is
+                always a tap away so you never double-stock.</p>
+            </li>
+
+            <li class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+                    stroke="currentColor" stroke-width="1.75" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"
+                    stroke="currentColor" stroke-width="1.75" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Any device</h3>
+              <p class="feature-body">Progressive web app — install it on iOS, Android, or your
+                desktop. One app, every device.</p>
             </li>
           </ul>
         </div>
+      </section>
 
-        <p class="dialog-description" v-else-if="upgradeReason === 'shares_limit'">
-          You've reached the limit of 6 members on the Family plan.
-        </p>
-
-        <div class="collab-section">
-          <h3 class="collab-subtitle">Share Link</h3>
-          <div class="collab-link-group">
-            <input ref="shareLinkInput" :value="shareLink" type="text" readonly class="input"
-              aria-label="Share link" />
-            <button @click="copyShareLink" class="button button-primary">
-              {{ linkCopied ? 'Copied!' : 'Copy' }}
-            </button>
+      <!-- ========================
+           PRICING
+      ========================= -->
+      <section id="pricing" class="pricing" aria-labelledby="pricing-heading">
+        <div class="landing-container">
+          <div class="section-header">
+            <h2 id="pricing-heading" class="section-heading">Simple, honest pricing</h2>
+            <p class="section-subheading">One plan is free, forever. Upgrade only when you're ready
+              to share.</p>
           </div>
-          <p class="help-text">Anyone with this link can view this list</p>
+
+          <div class="pricing-grid">
+
+            <!-- Solo -->
+            <article class="pricing-card" aria-labelledby="plan-solo-name">
+              <header class="pricing-card-header">
+                <h3 id="plan-solo-name" class="pricing-plan-name">Solo</h3>
+                <div class="pricing-amount">
+                  <span class="pricing-price" aria-label="Free">Free</span>
+                  <span class="pricing-period">forever</span>
+                </div>
+                <p class="pricing-tagline">Everything you need for yourself.</p>
+              </header>
+              <ul class="pricing-features" role="list" aria-label="Solo plan features">
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Unlimited grocery lists
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Works offline
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Purchase history
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  PWA — install on any device
+                </li>
+                <li class="pricing-feature pricing-feature--muted">
+                  <span class="pricing-x" aria-hidden="true"></span>
+                  <span>Shared lists</span>
+                </li>
+                <li class="pricing-feature pricing-feature--muted">
+                  <span class="pricing-x" aria-hidden="true"></span>
+                  <span>Real-time collaboration</span>
+                </li>
+              </ul>
+              <NuxtLink to="/signup" class="button button-secondary pricing-cta"
+                aria-describedby="plan-solo-name">
+                Get started free
+              </NuxtLink>
+            </article>
+
+            <!-- Family -->
+            <article class="pricing-card pricing-card--featured" aria-labelledby="plan-family-name">
+              <div class="pricing-badge" aria-label="Most popular plan">Most popular</div>
+              <header class="pricing-card-header">
+                <h3 id="plan-family-name" class="pricing-plan-name">Family</h3>
+                <div class="pricing-amount">
+                  <span class="pricing-price" aria-label="4 dollars per month">$4</span>
+                  <span class="pricing-period">/ month</span>
+                </div>
+                <p class="pricing-tagline">For households that shop together.</p>
+              </header>
+              <ul class="pricing-features" role="list" aria-label="Family plan features">
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Everything in Solo
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Up to 6 members, 12 lists
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Shared lists
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Real-time collaboration
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Invite via email link
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Priority support
+                </li>
+              </ul>
+              <NuxtLink to="/signup?plan=family" class="button pricing-cta pricing-cta--featured"
+                aria-describedby="plan-family-name">
+                Start free trial
+              </NuxtLink>
+              <p class="pricing-trial-note">14-day free trial, cancel anytime.</p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================
+           FAQ
+      ========================= -->
+      <section id="faq" class="faq" aria-labelledby="faq-heading">
+        <div class="landing-container faq-inner">
+          <div class="section-header">
+            <h2 id="faq-heading" class="section-heading">Frequently asked questions</h2>
+            <p class="section-subheading">Everything you need to know about BasketBuddy.</p>
+          </div>
+
+          <div class="faq-sections">
+
+            <div class="faq-group">
+              <h3 class="faq-group-title">General</h3>
+              <div class="faq-list">
+                <details class="faq-item">
+                  <summary class="faq-question">What is BasketBuddy?</summary>
+                  <div class="faq-answer">
+                    <p>BasketBuddy is a collaborative grocery list app that lets you create, share,
+                      and sync shopping lists in real time. It works on any device with a browser,
+                      and can be installed on your phone like an app.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Is there a free plan?</summary>
+                  <div class="faq-answer">
+                    <p>Yes — the Solo plan is free forever with up to 2 lists. No credit card
+                      required to sign up.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Can I cancel my subscription?</summary>
+                  <div class="faq-answer">
+                    <p>Yes, you can cancel any time from your account settings. You'll keep access
+                      until the end of your current billing period.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Is BasketBuddy accessible?</summary>
+                  <div class="faq-answer">
+                    <p>Yes. BasketBuddy is built to meet WCAG 2.2 AA accessibility standards. It
+                      works with screen readers, keyboard navigation, and supports high contrast and
+                      reduced motion preferences.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div class="faq-group">
+              <h3 class="faq-group-title">Plans &amp; Billing</h3>
+              <div class="faq-list">
+                <details class="faq-item">
+                  <summary class="faq-question">What is the difference between Solo and Family?
+                  </summary>
+                  <div class="faq-answer">
+                    <p>The Solo plan ($4/mo) is for one person and supports up to 5 lists. The
+                      Family plan ($8/mo) supports up to 6 members and up to 12 lists, making it
+                      great for households that shop together.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">How much does BasketBuddy cost?</summary>
+                  <div class="faq-answer">
+                    <p>Solo is $4/month or $40/year. Family is $8/month or $80/year. Paying annually
+                      saves you about two months compared to monthly billing.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Is my payment information secure?</summary>
+                  <div class="faq-answer">
+                    <p>Yes. All payments are processed by Stripe, a PCI-compliant payment provider.
+                      BasketBuddy never stores your card details.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div class="faq-group">
+              <h3 class="faq-group-title">Sharing &amp; Collaboration</h3>
+              <div class="faq-list">
+                <details class="faq-item">
+                  <summary class="faq-question">How do I share a list with someone?</summary>
+                  <div class="faq-answer">
+                    <p>Open the list you want to share, tap the share button, and enter the email
+                      address of the person you want to invite. They'll receive an email with
+                      instructions to join.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Does the person I share with need an account?
+                  </summary>
+                  <div class="faq-answer">
+                    <p>Yes, they'll need to sign up for a free account to view and edit the shared
+                      list. Signing up is free and only takes a moment.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">How many people can share a list?</summary>
+                  <div class="faq-answer">
+                    <p>On the Family plan, up to 6 members can share lists. The Solo plan supports
+                      list sharing but is capped at 5 lists total.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div class="faq-group">
+              <h3 class="faq-group-title">Installing the app</h3>
+              <div class="faq-list">
+                <details class="faq-item">
+                  <summary class="faq-question">How do I install BasketBuddy on an iPhone?</summary>
+                  <div class="faq-answer">
+                    <p>Open Safari, go to basketbuddyapp.netlify.app, tap the Share button, then tap
+                      "Add to Home Screen." BasketBuddy must be opened in Safari — Chrome and
+                      Firefox on iOS don't support installing apps.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">How do I install it on Android?</summary>
+                  <div class="faq-answer">
+                    <p>Open Chrome, go to basketbuddyapp.netlify.app, tap the three-dot menu, then
+                      tap "Add to Home screen" or "Install app." It will appear on your home screen
+                      just like a native app.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary class="faq-question">Does it work offline?</summary>
+                  <div class="faq-answer">
+                    <p>Yes. Once installed, BasketBuddy can load even without an internet
+                      connection. Your lists will sync automatically once you're back online.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+          </div>
+
+          <p class="faq-contact">Still have questions? <NuxtLink to="/faq" class="faq-contact-link">
+              Visit the full FAQ</NuxtLink> or <a href="mailto:todd@toddl.dev"
+              class="faq-contact-link">get in touch</a>.</p>
+
+        </div>
+      </section>
+
+      <!-- ========================
+           CTA BAND
+      ========================= -->
+      <section class="cta-band" aria-labelledby="cta-heading">
+        <div class="landing-container cta-inner">
+          <h2 id="cta-heading" class="cta-heading">Ready to simplify your grocery runs?</h2>
+          <p class="cta-body">Join thousands of households already using BasketBuddy. Free to start,
+            no card needed.</p>
+          <NuxtLink to="/signup" class="button cta-button">Create your free account</NuxtLink>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================
+         FOOTER
+    ========================= -->
+    <footer class="landing-footer" role="contentinfo">
+      <div class="landing-container footer-inner">
+        <div class="footer-brand">
+          <a href="/" class="nav-logo footer-logo" aria-label="BasketBuddy home">
+            <img src="/logo.svg" alt="" aria-hidden="true" width="28" height="28" />
+            <span class="nav-logo-text">BasketBuddy</span>
+          </a>
+          <p class="footer-tagline">Grocery lists for the whole household.</p>
         </div>
 
-        <div class="dialog-actions">
-          <button type="button" @click="closeShareDialog" class="button button-secondary">
-            Done
-          </button>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div class="footer-nav-group">
+            <h3 class="footer-nav-heading">Product</h3>
+            <ul role="list">
+              <li><a href="#features" class="footer-link">Features</a></li>
+              <li><a href="#pricing" class="footer-link">Pricing</a></li>
+              <li>
+                <NuxtLink to="/signup" class="footer-link">Sign up</NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/login" class="footer-link">Log in</NuxtLink>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-nav-group">
+            <h3 class="footer-nav-heading">Support</h3>
+            <ul role="list">
+              <li><a href="#faq" class="footer-link">FAQ</a></li>
+              <li><a href="mailto:hello@basketbuddyapp.netlify.app" class="footer-link">Contact</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="landing-container footer-bottom-inner">
+          <p class="footer-copy">
+            &copy; {{ new Date().getFullYear() }} BasketBuddy. Made with
+            <span aria-label="love" class="heart">♥</span>
+          </p>
+          <nav aria-label="Legal links">
+            <ul class="footer-legal" role="list">
+              <li>
+                <NuxtLink to="/privacy" class="footer-link">Privacy</NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/terms" class="footer-link">Terms</NuxtLink>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
-    </div>
-
-    <!-- Upgrade Dialog -->
-    <div
-      v-if="showUpgradeDialog"
-      class="dialog-overlay"
-      @click="showUpgradeDialog = false"
-      role="dialog"
-      aria-labelledby="upgrade-title"
-      aria-modal="true">
-      <div class="dialog" @click.stop>
-        <h2 id="upgrade-title" class="dialog-title">Upgrade to Continue</h2>
-        <p class="dialog-description" v-if="upgradeReason === 'list'">
-          You've reached the limit of {{ maxLists }} lists on the free plan. Upgrade to Solo for up
-          to 5 lists, or Family for unlimited lists.
-        </p>
-        <p class="dialog-description" v-else>
-          Sharing lists is available on paid plans. Upgrade to Solo or Family to share lists with
-          others.
-        </p>
-        <div class="dialog-actions">
-          <button
-            type="button"
-            @click="showUpgradeDialog = false"
-            class="button button-secondary">
-            Not Now
-          </button>
-          <NuxtLink
-            to="/pricing"
-            class="button button-primary"
-            @click="showUpgradeDialog = false">
-            View Plans
-          </NuxtLink>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="isLoggingOut" class="logout-overlay">
-      <div class="logout-spinner"></div>
-      <p class="logout-text">Signing out...</p>
-    </div>
-
-    <AppFooter />
+    </footer>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { useListStore } from '~/stores/listStore'
-import { clearAllData } from '~/server/utils/indexedDB'
-import type { GroceryList } from '~/types/models'
+import { ref } from 'vue'
 
-definePageMeta({
-  middleware: 'auth'
-})
-
+// Redirect logged-in users straight to the dashboard
 const supabase = useSupabase()
-const currentUserId = ref<string | null>(null)
-const router = useRouter()
-const listStore = useListStore()
-
-const isLoading = ref(true)
-const showNewListDialog = ref(false)
-const newListName = ref('')
-const newListInput = ref<HTMLInputElement | null>(null)
-const isCreating = ref(false)
-const listToDelete = ref<GroceryList | null>(null)
-const listToRename = ref<GroceryList | null>(null)
-const isRenaming = ref(false)
-const isDeleting = ref(false)
-const isLoggingOut = ref(false)
-const showShareDialog = ref(false)
-const sharingList = ref<GroceryList | null>(null)
-const shareEmail = ref('')
-const sharePermission = ref<'view' | 'edit'>('edit')
-const isSharingList = ref(false)
-const listShares = ref<any[]>([])
-const isLoadingShares = ref(false)
-const shareLinkInput = ref<HTMLInputElement | null>(null)
-const linkCopied = ref(false)
-
-const { avatarUrl, userInitials, loadAvatar } = useUserAvatar()
-const pendingInvitations = ref<any[]>([])
-const { maxLists, maxShares, canShare, fetchSubscription, subscription } = useSubscription()
-const showUpgradeDialog = ref(false)
-const upgradeReason = ref('')
-
-onMounted(async () => {
-  await loadAvatar()
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
-    isLoading.value = false
-    return
-  }
-
-  currentUserId.value = session.user.id
-  isLoading.value = true
-  listStore.lists = []
-
-  await listStore.fetchLists?.()
-
-  const invites = await listStore.getPendingInvitations?.()
-  pendingInvitations.value = invites || []
-
-  isLoading.value = false
-})
-
-const closeNewListDialog = () => {
-  showNewListDialog.value = false
-  newListName.value = ''
-}
-
-watch(showNewListDialog, (show) => {
-  if (show) {
-    nextTick(() => {
-      newListInput.value?.focus()
-    })
-  }
-})
-
-const handleCreateList = async () => {
-  if (!newListName.value.trim() || isCreating.value) return
-  if (listStore.lists.length >= maxLists.value) {
-    upgradeReason.value = 'list'
-    showUpgradeDialog.value = true
-    return
-  }
-  isCreating.value = true
-  try {
-    const newList = await listStore.createList?.(newListName.value.trim())
-    closeNewListDialog()
-    // Navigate to the new list
-    if (newList) {
-      await router.push(`/list/${newList.id}`)
-    }
-  } catch (error) {
-    console.error('Error creating list:', error)
-    alert('Failed to create list. Please try again.')
-  } finally {
-    isCreating.value = false
-  }
-}
-
-const confirmDelete = (list: GroceryList) => {
-  listToDelete.value = list
-}
-
-const cancelDelete = () => {
-  listToDelete.value = null
-}
-
-const handleDeleteList = async () => {
-  if (!listToDelete.value || isDeleting.value) return
-
-  isDeleting.value = true
-  try {
-    await listStore.deleteListById?.(listToDelete.value.id)
-    listToDelete.value = null
-  } catch (error) {
-    console.error('Error deleting list:', error)
-    alert('Failed to delete list. Please try again.')
-  } finally {
-    isDeleting.value = false
-  }
-}
-
-const openRenameDialog = (list: GroceryList) => {
-  listToRename.value = list
-  newListName.value = list.name
-}
-
-const closeRenameDialog = () => {
-  listToRename.value = null
-  newListName.value = ''
-}
-
-const handleRenameList = async () => {
-  if (!listToRename.value || !newListName.value.trim() || isRenaming.value) return
-
-  isRenaming.value = true
-  try {
-    const { error } = await (supabase as any)
-      .from('lists')
-      .update({
-        name: newListName.value.trim()
-      })
-      .eq('id', listToRename.value.id)
-
-    if (error) throw error
-
-    // Update local list immediately
-    const listIndex = listStore.lists.findIndex(l => l.id === listToRename.value?.id)
-    if (listIndex !== -1 && listStore.lists[listIndex]) {
-      listStore.lists[listIndex]!.name = newListName.value.trim()
-      listStore.lists[listIndex]!.updated_at = new Date().toISOString()
-    }
-
-    closeRenameDialog()
-  } catch (error) {
-    console.error('Error renaming list:', error)
-    alert('Failed to rename list. Please try again.')
-  } finally {
-    isRenaming.value = false
-  }
-}
-
-const shareLink = computed(() => {
-  if (process.client && sharingList.value) {
-    return `${window.location.origin}/list/${sharingList.value.id}`
-  }
-  return ''
-})
-
-const openShareDialog = async (list: GroceryList) => {
-  if (!canShare.value) {
-    upgradeReason.value = 'share'
-    showUpgradeDialog.value = true
-    return
-  }
-  sharingList.value = list
-  showShareDialog.value = true
-  isLoadingShares.value = true
-  try {
-    const shares = await listStore.getListShares?.(list.id)
-    listShares.value = shares || []
-
-    if (subscription.value?.plan === 'family' && !subscription.value?.is_free) {
-      const activeShares = listShares.value.filter(s => s.user_id)
-      if (activeShares.length >= maxShares.value) {
-        upgradeReason.value = 'shares_limit'
-        showUpgradeDialog.value = true
-        showShareDialog.value = false
-        return
-      }
-    }
-  } catch (error) {
-    console.error('Error loading shares:', error)
-  } finally {
-    isLoadingShares.value = false
-  }
-}
-
-const closeShareDialog = () => {
-  showShareDialog.value = false
-  sharingList.value = null
-  shareEmail.value = ''
-  sharePermission.value = 'edit'
-  listShares.value = []
-  linkCopied.value = false
-}
-
-const handleShareList = async () => {
-  const email = shareEmail.value.trim()
-  if (!email || isSharingList.value || !sharingList.value) return
-
-  if (!email.includes('@')) {
-    alert('Please enter a valid email address')
-    return
-  }
-
-  isSharingList.value = true
-  try {
-    const newShare = await listStore.shareList?.(sharingList.value.id, email, sharePermission.value)
-    if (newShare) {
-      listShares.value.push(newShare)
-    }
-    shareEmail.value = ''
-    sharePermission.value = 'edit'
-  } catch (error: any) {
-    console.error('Error sharing list:', error)
-    alert(error.message || 'Failed to share list. Please try again.')
-  } finally {
-    isSharingList.value = false
-  }
-}
-
-const handleRemoveShare = async (shareId: string, email: string) => {
-  const confirmed = confirm(`Remove access for ${email}?`)
-  if (!confirmed) return
-
-  try {
-    await listStore.removeShare?.(shareId)
-    listShares.value = listShares.value.filter(s => s.id !== shareId)
-  } catch (error) {
-    console.error('Error removing share:', error)
-    alert('Failed to remove access. Please try again.')
-  }
-}
-
-const copyShareLink = async () => {
-  try {
-    await navigator.clipboard.writeText(shareLink.value)
-    linkCopied.value = true
-    setTimeout(() => { linkCopied.value = false }, 2000)
-  } catch (error) {
-    console.error('Error copying link:', error)
-    shareLinkInput.value?.select()
-  }
-}
-
-const acceptInvitation = async (listId: string, listName: string) => {
-  try {
-    await listStore.acceptShareInvitation?.(listId)
-    await listStore.fetchLists?.()
-
-    const invites = await listStore.getPendingInvitations?.()
-    pendingInvitations.value = invites || []
-
-    alert(`You now have access to "${listName}"`)
-  } catch (error) {
-    console.error('Error accepting invitation:', error)
-    alert('Failed to accept invitation. Please try again.')
-  }
-}
-
-const handleLogout = async () => {
-  isLoggingOut.value = true
-
-  try {
-    // Clear all local data first
-    await clearAllData()
-
-    // Clear store state
-    listStore.lists = []
-    listStore.currentList = null
-    listStore.currentItems = []
-    listStore.categories = []
-
-    // Sign out from Supabase
-    await supabase.auth.signOut()
-
-    // Small delay to ensure everything is cleared
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    // Navigate using router instead of full reload
-    await router.replace('/login')
-  } catch (error) {
-    console.error('Logout error:', error)
-    // If there's an error, force reload as fallback
-    window.location.href = '/login'
-  } finally {
-    isLoggingOut.value = false
-  }
-}
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (days === 0) return 'today'
-  if (days === 1) return 'yesterday'
-  if (days < 7) return `${days} days ago`
-  return date.toLocaleDateString()
+const { data: { session } } = await supabase.auth.getSession()
+if (session) {
+  await navigateTo('/lists')
 }
 
 useHead({
-  title: 'My Lists - BasketBuddy'
+  title: 'BasketBuddy — Grocery lists for the whole household',
+  meta: [
+    {
+      name: 'description',
+      content: 'BasketBuddy keeps your grocery lists in sync across everyone in your household — in real time, without the chaos. Free forever for solo use.'
+    },
+    { property: 'og:title', content: 'BasketBuddy — Grocery lists for the whole household' },
+    {
+      property: 'og:description',
+      content: 'Shared grocery lists that sync in real time. Free for solo, $4/mo for families.'
+    },
+    { name: 'theme-color', content: '#6626AF' }
+  ]
 })
+
+const mobileMenuOpen = ref(false)
 </script>
 
-<style>
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
+<style scoped>
+/* ========================
+   Layout
+========================= */
+.landing {
+  --landing-max: 1120px;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  /* Lighter purple for text on dark backgrounds — passes WCAG AA */
+  --color-purple-on-dark: #b794f4;
 }
 
-.app-header {
-  background-color: var(--color-primary);
-  color: white;
-  padding: var(--spacing-md) 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.landing-container {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
 }
 
-.header-content {
+/* ========================
+   Nav
+========================= */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav-inner {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+  height: 64px;
 }
 
-.header-actions {
+.nav-logo {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  flex-wrap: wrap;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
-.container {
-  width: 100%;
-  max-width: 100%;
-  padding-left: var(--spacing-md);
-  padding-right: var(--spacing-md);
-  box-sizing: border-box;
-}
-
-.app-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.offline-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: 0.25rem;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
-
-.main-content {
-  flex: 1;
-  padding: var(--spacing-xl) 0;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-md);
-}
-
-.section-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin: 0;
-  color: var(--color-text);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-xl);
-  background-color: var(--color-surface);
-  border-radius: 0.5rem;
-}
-
-.empty-text {
-  color: var(--color-text-secondary);
+.nav-logo-text {
   font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
-.lists-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
-  gap: var(--spacing-md);
+/* Dark mode nav background is dark — white reads far better than purple */
+:root.dark .nav-logo-text,
+:root:not(.light) .nav-logo-text {
+  color: #ffffff;
+}
+
+/* Footer always dark */
+.landing-footer .nav-logo-text {
+  color: #ffffff;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: var(--spacing-lg);
+  margin: 0;
+  padding: 0;
+  margin-left: auto;
+}
+
+.nav-link {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-primary);
+}
+
+.nav-link:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.nav-cta {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.nav-btn-login {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  min-height: 38px;
+  font-size: var(--font-size-sm);
+}
+
+.nav-btn-login:hover:not(:disabled) {
+  background-color: var(--color-surface);
+  transform: none;
+}
+
+.nav-btn-signup {
+  min-height: 38px;
+  font-size: var(--font-size-sm);
+}
+
+.nav-mobile-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  margin-left: auto;
+}
+
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: var(--color-text);
+  border-radius: 2px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.mobile-menu {
+  display: none;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.mobile-menu ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.list-card {
-  position: relative;
-  background-color: var(--color-surface);
-  border-radius: 0.5rem;
-  padding: var(--spacing-lg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
+  gap: var(--spacing-xs);
 }
 
-.list-card-body {
+.mobile-nav-link {
   display: block;
-  padding: var(--spacing-md);
-}
-
-.list-name {
-  font-size: var(--font-size-lg);
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
   font-weight: 600;
-  margin: 0 0 var(--spacing-xs) 0;
   color: var(--color-text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.list-meta {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
+.mobile-nav-link:last-child {
+  border-bottom: none;
 }
 
-.list-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin-top: auto;
+.mobile-nav-cta {
+  display: block;
   width: 100%;
+  margin-top: var(--spacing-md);
+  text-align: center;
   box-sizing: border-box;
 }
 
-.list-owner-badge {
-  display: inline-block;
-  margin: var(--spacing-xs) 0 0 0;
-  padding: 2px 8px;
-  background-color: #ede9fe;
-  color: #5b21b6;
-  border-radius: 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
+@media (max-width: 768px) {
 
-.pull-hint {
-  text-align: center;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--spacing-md);
-  display: none;
-}
+  .nav-links,
+  .nav-cta {
+    display: none;
+  }
 
-@media (max-width: 640px) {
-  .pull-hint {
+  .nav-mobile-toggle {
+    display: flex;
+  }
+
+  .mobile-menu--open {
     display: block;
   }
 }
 
-.button-icon {
-  min-width: var(--min-touch-target);
-  min-height: var(--min-touch-target);
-  padding: var(--spacing-xs);
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: var(--font-size-2xl);
-  line-height: 1;
-  color: var(--color-text-secondary);
-  border-radius: 0.25rem;
+/* ========================
+   Section shared styles
+========================= */
+.section-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto var(--spacing-2xl);
 }
 
-.button-icon:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.button-danger {
-  color: var(--color-danger);
-}
-
-.button-danger:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-}
-
-.button-action {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 52px;
-  padding: var(--spacing-xs) 2px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: #10b981;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 0.375rem;
-  min-width: 0;
-}
-
-.button-action.button-edit {
-  color: #b45309;
-  border-color: var(--color-border);
-}
-
-.button-action.button-edit:hover {
-  background-color: rgba(180, 83, 9, 0.1);
-  border-color: #b45309;
-  color: #92400e;
-}
-
-.button-action.button-rename {
-  color: #047857;
-  border-color: var(--color-border);
-}
-
-.button-action.button-rename:hover {
-  background-color: rgba(4, 120, 87, 0.1);
-  border-color: #047857;
-  color: #065f46;
-}
-
-.button-action.button-collab {
-  color: #1d4ed8;
-  border-color: var(--color-border);
-}
-
-.button-action.button-collab:hover {
-  background-color: rgba(29, 78, 216, 0.1);
-  border-color: #1d4ed8;
-  color: #1e40af;
-}
-
-.button-action.button-danger {
-  color: #b91c1c;
-  border-color: var(--color-border);
-}
-
-.button-action.button-danger:hover {
-  background-color: rgba(185, 28, 28, 0.1);
-  border-color: #b91c1c;
-  color: #991b1b;
-}
-
-.button-action:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.button-action svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.action-text {
-  font-size: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.button-delete {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  min-width: 60px;
-  min-height: 60px;
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  color: var(--color-danger);
-  cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 0.375rem;
-}
-
-.button-delete:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-  color: #b91c1c;
-}
-
-.button-delete:focus-visible {
-  outline: 2px solid var(--color-danger);
-  outline-offset: 2px;
-}
-
-.button-delete svg {
-  flex-shrink: 0;
-}
-
-.delete-text {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-md);
-  z-index: 1000;
-}
-
-.dialog {
-  background-color: var(--color-background);
-  padding: var(--spacing-xl);
-  border-radius: 0.5rem;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-.dialog-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-lg) 0;
+.section-heading {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
   color: var(--color-text);
+  margin: 0 0 var(--spacing-md);
+  line-height: 1.2;
 }
 
-.dialog-description {
-  color: var(--color-text);
-  margin: 0 0 var(--spacing-lg) 0;
-  line-height: 1.5;
-}
-
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-}
-
-.dialog-large {
-  max-width: 600px;
-}
-
-.collab-form {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.collab-subtitle {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--color-text);
-}
-
-.collab-input-group {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.collab-input-group .input {
-  flex: 1;
-  min-width: 180px;
-}
-
-.collab-permission-select {
-  min-width: 120px;
-  flex-shrink: 0;
-}
-
-.shares-list {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.loading-shares {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.spinner-small {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.shares-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.collab-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm);
-  background-color: var(--color-surface);
-  border-radius: 0.375rem;
-  gap: var(--spacing-md);
-}
-
-.collab-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  flex: 1;
-}
-
-.collab-email {
-  font-weight: 500;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-}
-
-.collab-permission-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.collab-pending {
-  display: inline-block;
-  padding: 2px 8px;
-  background-color: #fbbf24;
-  color: #78350f;
-  border-radius: 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  width: fit-content;
-}
-
-.collab-section {
-  margin-bottom: var(--spacing-lg);
-}
-
-.collab-link-group {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.help-text {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.delete-button {
-  background-color: #dc2626;
-  color: white;
-  font-weight: 500;
-}
-
-.delete-button:hover:not(:disabled) {
-  background-color: #b91c1c;
-}
-
-.delete-button:focus-visible {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
-}
-
-.invitations-section {
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-md);
-  background-color: #fef3c7;
-  border-radius: 0.5rem;
-  border: 2px solid #fbbf24;
-}
-
-.section-subtitle {
+.section-subheading {
   font-size: var(--font-size-lg);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-md) 0;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
 }
 
-.invitations-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ========================
+   Hero
+========================= */
+.hero {
+  padding: var(--spacing-2xl) 0;
+  overflow: hidden;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2xl);
+  align-items: center;
+  min-height: 540px;
+}
+
+.hero-content {
+  max-width: 520px;
+}
+
+.hero-eyebrow {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-purple-on-dark);
+  margin: 0 0 var(--spacing-md);
+}
+
+.hero-heading {
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.hero-heading-accent {
+  color: var(--color-purple-on-dark);
+}
+
+.hero-br {
+  display: none;
+}
+
+.hero-body {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0 0 var(--spacing-xl);
+}
+
+.hero-actions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+.hero-cta-primary {
+  font-size: var(--font-size-base);
+  padding: 0 var(--spacing-xl);
+}
+
+.hero-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-purple-on-dark);
+  text-decoration: none;
+  transition: gap 0.2s;
+}
+
+.hero-cta-secondary:hover {
   gap: var(--spacing-sm);
 }
 
-.invitation-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
-  background-color: white;
-  border-radius: 0.375rem;
-  gap: var(--spacing-md);
+.hero-cta-secondary:focus-visible {
+  outline: 3px solid var(--color-purple-on-dark);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-.invitation-info {
-  flex: 1;
-}
-
-.invitation-title {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-xs) 0;
-  color: var(--color-text);
-}
-
-.invitation-meta {
+.hero-note {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin: 0;
 }
 
-.form-group {
-  margin-bottom: var(--spacing-lg);
+/* Phone mockup */
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
-.form-label {
-  display: block;
-  font-weight: 500;
-  font-size: var(--font-size-base);
-  color: var(--color-text);
+.hero-blob {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 38, 175, 0.12) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.phone-mockup {
+  position: relative;
+  z-index: 1;
+  width: 280px;
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  padding: var(--spacing-md);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(102, 38, 175, 0.2);
+}
+
+.phone-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.mockup-categories-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mockup-categories-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mockup-add-category-btn {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: #6626AF;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 0.375rem;
+}
+
+.mockup-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: var(--spacing-xs);
 }
 
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl);
-  gap: var(--spacing-lg);
+.mockup-input-field {
+  flex: 1;
+  font-size: 11px;
+  color: #4b5563;
+  background-color: #0f172a;
+  border: 1px solid #2d3748;
+  border-radius: 0.375rem;
+  padding: 6px 8px;
 }
 
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.mockup-add-photo-btn {
+  font-size: 10px;
+  color: #6b7280;
+  border: 1px dashed #374151;
+  border-radius: 0.375rem;
+  padding: 6px 8px;
+  white-space: nowrap;
 }
 
-.avatar-button {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.header-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.header-avatar-placeholder {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-sm);
+.mockup-add-btn {
+  font-size: 10px;
   font-weight: 700;
+  background-color: #6626AF;
   color: white;
+  padding: 6px 10px;
+  border-radius: 0.375rem;
+  white-space: nowrap;
 }
 
-.loading-text {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
+.mockup-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #4b5563;
+  margin: var(--spacing-xs) 0 4px;
+  padding: 0;
+}
+
+.mockup-list {
+  list-style: none;
+  padding: 0;
   margin: 0;
-}
-
-.logout-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: var(--color-background);
   display: flex;
   flex-direction: column;
+  gap: 4px;
+}
+
+.mockup-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  font-size: var(--font-size-sm);
+  color: #e2e8f0;
+  padding: 10px 12px;
+  background-color: #1e2d45;
+  border-radius: 0.5rem;
+  border: 1px solid #243044;
+}
+
+.mockup-item--done {
+  color: #475569;
+  text-decoration: line-through;
+}
+
+/* Purple filled square checkbox — checked */
+.mockup-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background-color: #6626AF;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.mockup-check::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 10l3.5 3.5L15 7' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Dark square with border — unchecked */
+.mockup-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 2px solid #334155;
+  background-color: #162032;
+  flex-shrink: 0;
+}
+
+.mockup-avatar--purple {
+  background-color: #6626AF;
+}
+
+.mockup-avatar--green {
+  background-color: #059669;
+}
+
+.mockup-avatar--orange {
+  background-color: #d97706;
+}
+
+.mockup-synced {
+  font-size: 10px;
+  color: #475569;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    min-height: auto;
+    gap: var(--spacing-xl);
+  }
+
+  .hero-content {
+    max-width: 100%;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .hero-br {
+    display: block;
+  }
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .phone-mockup {
+    width: 220px;
+  }
+}
+
+/* ========================
+   Features
+========================= */
+.features {
+  padding: var(--spacing-2xl) 0;
+  background-color: var(--color-surface);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-lg);
-  z-index: 9999;
-}
-
-.logout-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.logout-text {
-  font-size: var(--font-size-lg);
-  color: var(--color-text);
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-.app-footer {
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--spacing-xl) 0;
-  margin-top: auto;
+.feature-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: var(--spacing-xl);
 }
 
-/* Small devices (640px and below) */
-@media (max-width: 640px) {
-  .app-title {
-    font-size: var(--font-size-lg);
-  }
-
-  .header-content {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
-  .header-actions {
-    width: auto;
-    justify-content: flex-start;
-    gap: var(--spacing-xs);
-    flex-wrap: wrap;
-  }
-
-  .section-header {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-  }
-
-  .section-header .button {
-    width: auto;
-    min-width: 160px;
-  }
-
-  .lists-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .list-card {
-    padding: var(--spacing-sm);
-  }
-
-  .button-action {
-    flex: unset;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-height: 52px;
-    padding: var(--spacing-xs) 2px;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: #10b981;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 0.375rem;
-    min-width: 0;
-  }
-
-  .button-action svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .action-text {
-    font-size: 9px;
-  }
-
-  .button-delete {
-    min-width: 50px;
-    min-height: 50px;
-  }
-
-  .invitations-section {
-    padding: var(--spacing-sm);
-  }
-
-  .invitation-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .dialog {
-    margin: var(--spacing-sm);
-    padding: var(--spacing-md);
-    max-width: calc(100vw - 2rem);
-    box-sizing: border-box;
-  }
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.625rem;
+  background-color: rgba(102, 38, 175, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
 }
 
-/* Medium devices (tablets, 768px and up) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .lists-grid {
+.feature-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.feature-body {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Large devices (desktops, 1024px and up) */
-@media (min-width: 1024px) {
-  .lists-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .container {
-    max-width: 1024px;
+@media (max-width: 640px) {
+  .features-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Extra large devices (large desktops, 1280px and up) */
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
+/* ========================
+   Pricing
+========================= */
+.pricing {
+  padding: var(--spacing-2xl) 0;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.pricing-card--featured {
+  border: 2px solid var(--color-primary);
+}
+
+.pricing-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-primary);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.pricing-card-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.pricing-plan-name {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.pricing-amount {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pricing-price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.pricing-period {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.pricing-tagline {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.pricing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.pricing-feature {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.pricing-feature--muted {
+  color: var(--color-text-secondary);
+}
+
+.pricing-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--color-success);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pricing-check::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 9l3.5 3.5L14 6' stroke='white' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.pricing-x {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pricing-x::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 6l6 6M12 6l-6 6' stroke='%236b7280' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.pricing-cta {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.pricing-cta:hover:not(:disabled) {
+  background-color: rgba(102, 38, 175, 0.06);
+  transform: none;
+}
+
+/* Dark mode — card surface is dark, primary purple fails contrast */
+:root.dark .pricing-cta,
+:root:not(.light) .pricing-cta {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+:root.dark .pricing-cta:hover:not(:disabled),
+:root:not(.light) .pricing-cta:hover:not(:disabled) {
+  background-color: rgba(183, 148, 244, 0.1);
+}
+
+.pricing-cta--featured {
+  background-color: var(--color-primary-dark);
+  color: white;
+  border-color: var(--color-primary-dark);
+}
+
+.pricing-cta--featured:hover:not(:disabled) {
+  background-color: #3d1769;
+}
+
+.pricing-trial-note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin: var(--spacing-sm) 0 0;
+}
+
+@media (max-width: 640px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+
+  .pricing-card--featured {
+    order: -1;
   }
 }
 
-:root.dark .button-action.button-edit,
-:root:not(.light) .button-action.button-edit {
-  color: #fbbf24;
+/* ========================
+   FAQ
+========================= */
+.faq {
+  padding: var(--spacing-2xl) 0;
+  background-color: var(--color-surface);
 }
 
-:root.dark .button-action.button-rename,
-:root:not(.light) .button-action.button-rename {
-  color: #34d399;
+.faq-inner {
+  max-width: 720px;
 }
 
-:root.dark .button-action.button-collab,
-:root:not(.light) .button-action.button-collab {
-  color: #60a5fa;
+.faq-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
 }
 
-:root.dark .button-action.button-danger,
-:root:not(.light) .button-action.button-danger {
-  color: #f87171;
+.faq-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.faq-group-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.faq-item {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.faq-item[open] {
+  border-color: var(--color-primary);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  list-style: none;
+  gap: var(--spacing-md);
+  min-height: var(--min-touch-target);
+}
+
+.faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-question::after {
+  content: '+';
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-purple-on-dark);
+  flex-shrink: 0;
+}
+
+.faq-item[open] .faq-question::after {
+  content: '–';
+}
+
+.faq-question:hover {
+  background-color: rgba(102, 38, 175, 0.05);
+}
+
+.faq-item summary:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
+}
+
+.faq-answer {
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.faq-answer p {
+  margin: 0;
+}
+
+.faq-contact {
+  text-align: center;
+  padding: var(--spacing-2xl) 0 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.faq-contact-link {
+  color: var(--color-purple-on-dark);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.faq-contact-link:hover {
+  color: #d6bcfa;
+}
+
+@media (max-width: 640px) {
+  .faq-question {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .faq-answer {
+    padding: 0 var(--spacing-md) var(--spacing-sm);
+  }
+}
+
+
+/* ========================
+   CTA Band
+========================= */
+.cta-band {
+  padding: var(--spacing-2xl) 0;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.cta-inner {
+  text-align: center;
+}
+
+.cta-heading {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  color: white;
+  margin: 0 0 var(--spacing-md);
+  line-height: 1.2;
+}
+
+.cta-body {
+  font-size: var(--font-size-lg);
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 var(--spacing-xl);
+  line-height: 1.6;
+}
+
+.cta-button {
+  background-color: white;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  padding: 0 var(--spacing-xl);
+}
+
+.cta-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* ========================
+   Footer
+========================= */
+.landing-footer {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-2xl);
+  align-items: start;
+  padding-top: var(--spacing-2xl);
+  padding-bottom: var(--spacing-2xl);
+}
+
+.footer-brand {
+  max-width: 280px;
+}
+
+.footer-logo {
+  margin-bottom: var(--spacing-sm);
+}
+
+.footer-tagline {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.footer-nav {
+  display: flex;
+  gap: var(--spacing-2xl);
+}
+
+.footer-nav-group ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.footer-nav-heading {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.footer-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.footer-link:hover {
+  color: var(--color-purple-on-dark);
+}
+
+.footer-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-md) 0;
+}
+
+.footer-bottom-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-copy {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.footer-legal {
+  display: flex;
+  gap: var(--spacing-md);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.heart {
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+
+  .footer-bottom-inner {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    text-align: center;
+  }
+}
+
+/* ========================
+   Section spacing on mobile
+========================= */
+@media (max-width: 640px) {
+
+  .hero,
+  .features,
+  .pricing,
+  .faq,
+  .cta-band {
+    padding: var(--spacing-xl) 0;
+  }
+
+  .section-heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .cta-heading {
+    font-size: var(--font-size-2xl);
+  }
 }
 </style>
