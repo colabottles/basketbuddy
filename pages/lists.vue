@@ -743,11 +743,17 @@ useHead({
   display: inline-block;
   margin: var(--spacing-xs) 0 0 0;
   padding: 2px 8px;
-  background-color: rgba(102, 38, 175, 0.1);
-  color: var(--color-primary);
+  background-color: rgba(102, 38, 175, 0.2);
+  color: #c4b5fd;
   border-radius: 12px;
   font-size: var(--font-size-sm);
   font-weight: 500;
+}
+
+:root.light .list-owner-badge,
+:root:not(.dark) .list-owner-badge {
+  background-color: #ede9fe;
+  color: #5b21b6;
 }
 
 /* ========================

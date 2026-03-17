@@ -93,7 +93,7 @@
                 </svg>
               </a>
             </div>
-            <p class="hero-note">Free forever for solo use. Family plan from $4/mo.</p>
+            <p class="hero-note">Solo from $4/mo. Family from $8/mo. Free to try.</p>
           </div>
 
           <div class="hero-visual" aria-hidden="true">
@@ -246,26 +246,68 @@
         <div class="landing-container">
           <div class="section-header">
             <h2 id="pricing-heading" class="section-heading">Simple, honest pricing</h2>
-            <p class="section-subheading">One plan is free, forever. Upgrade only when you're ready
-              to share.</p>
+            <p class="section-subheading">Solo at $4/mo. Family at $8/mo. Sign up free, no credit
+              card required.</p>
           </div>
 
           <div class="pricing-grid">
+
+            <!-- Free -->
+            <article class="pricing-card" aria-labelledby="plan-free-name">
+              <header class="pricing-card-header">
+                <h3 id="plan-free-name" class="pricing-plan-name">Free</h3>
+                <div class="pricing-amount">
+                  <span class="pricing-price" aria-label="Free">$0</span>
+                  <span class="pricing-period">/ forever</span>
+                </div>
+                <p class="pricing-tagline">No credit card required.</p>
+              </header>
+              <ul class="pricing-features" role="list" aria-label="Free plan features">
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Up to 2 lists
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Works offline
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  PWA — install on any device
+                </li>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  Rewards card storage
+                </li>
+                <li class="pricing-feature pricing-feature--muted">
+                  <span class="pricing-x" aria-hidden="true"></span>
+                  <span>List sharing</span>
+                </li>
+                <li class="pricing-feature pricing-feature--muted">
+                  <span class="pricing-x" aria-hidden="true"></span>
+                  <span>Real-time collaboration</span>
+                </li>
+              </ul>
+              <NuxtLink to="/signup" class="button button-secondary pricing-cta"
+                aria-describedby="plan-free-name">
+                Get started free
+              </NuxtLink>
+            </article>
 
             <!-- Solo -->
             <article class="pricing-card" aria-labelledby="plan-solo-name">
               <header class="pricing-card-header">
                 <h3 id="plan-solo-name" class="pricing-plan-name">Solo</h3>
                 <div class="pricing-amount">
-                  <span class="pricing-price" aria-label="Free">Free</span>
-                  <span class="pricing-period">forever</span>
+                  <span class="pricing-price" aria-label="4 dollars per month">$4</span>
+                  <span class="pricing-period">/ month</span>
                 </div>
                 <p class="pricing-tagline">Everything you need for yourself.</p>
               </header>
               <ul class="pricing-features" role="list" aria-label="Solo plan features">
                 <li class="pricing-feature">
                   <span class="pricing-check" aria-hidden="true"></span>
-                  Unlimited grocery lists
+                  Up to 5 lists
                 </li>
                 <li class="pricing-feature">
                   <span class="pricing-check" aria-hidden="true"></span>
@@ -279,9 +321,9 @@
                   <span class="pricing-check" aria-hidden="true"></span>
                   PWA — install on any device
                 </li>
-                <li class="pricing-feature pricing-feature--muted">
-                  <span class="pricing-x" aria-hidden="true"></span>
-                  <span>Shared lists</span>
+                <li class="pricing-feature">
+                  <span class="pricing-check" aria-hidden="true"></span>
+                  List sharing
                 </li>
                 <li class="pricing-feature pricing-feature--muted">
                   <span class="pricing-x" aria-hidden="true"></span>
@@ -290,7 +332,7 @@
               </ul>
               <NuxtLink to="/signup" class="button button-secondary pricing-cta"
                 aria-describedby="plan-solo-name">
-                Get started free
+                Get Solo
               </NuxtLink>
             </article>
 
@@ -300,7 +342,7 @@
               <header class="pricing-card-header">
                 <h3 id="plan-family-name" class="pricing-plan-name">Family</h3>
                 <div class="pricing-amount">
-                  <span class="pricing-price" aria-label="4 dollars per month">$4</span>
+                  <span class="pricing-price" aria-label="8 dollars per month">$8</span>
                   <span class="pricing-period">/ month</span>
                 </div>
                 <p class="pricing-tagline">For households that shop together.</p>
@@ -366,10 +408,10 @@
                   </div>
                 </details>
                 <details class="faq-item">
-                  <summary class="faq-question">Is there a free plan?</summary>
+                  <summary class="faq-question">Is there a free trial?</summary>
                   <div class="faq-answer">
-                    <p>Yes — the Solo plan is free forever with up to 2 lists. No credit card
-                      required to sign up.</p>
+                    <p>Yes — you can sign up for free with no credit card required and try
+                      BasketBuddy before subscribing. Solo is $4/mo and Family is $8/mo.</p>
                   </div>
                 </details>
                 <details class="faq-item">
@@ -581,13 +623,25 @@ useHead({
     { property: 'og:title', content: 'BasketBuddy — Grocery lists for the whole household' },
     {
       property: 'og:description',
-      content: 'Shared grocery lists that sync in real time. Free for solo, $4/mo for families.'
+      content: 'Shared grocery lists that sync in real time. Solo $4/mo, Family $8/mo. Free to sign up.'
     },
     { name: 'theme-color', content: '#6626AF' }
   ]
 })
 
 const mobileMenuOpen = ref(false)
+
+watch(mobileMenuOpen, (open) => {
+  if (process.client) {
+    document.body.style.overflow = open ? 'hidden' : ''
+  }
+})
+
+onUnmounted(() => {
+  if (process.client) {
+    document.body.style.overflow = ''
+  }
+})
 </script>
 
 <style scoped>
@@ -756,10 +810,11 @@ const mobileMenuOpen = ref(false)
 }
 
 .mobile-nav-cta {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   margin-top: var(--spacing-md);
-  text-align: center;
   box-sizing: border-box;
 }
 
@@ -776,6 +831,15 @@ const mobileMenuOpen = ref(false)
 
   .mobile-menu--open {
     display: block;
+    position: fixed;
+    top: 64px;
+    /* matches nav height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--z-header) - 1);
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom, var(--spacing-xl));
   }
 }
 
@@ -1168,9 +1232,9 @@ const mobileMenuOpen = ref(false)
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-lg);
-  max-width: 760px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -1307,24 +1371,30 @@ const mobileMenuOpen = ref(false)
 }
 
 /* Dark mode — card surface is dark, primary purple fails contrast */
-:root.dark .pricing-cta,
-:root:not(.light) .pricing-cta {
-  color: var(--color-text);
-  border-color: var(--color-primary);
+:root.dark .pricing-cta:not(.pricing-cta--featured),
+:root:not(.light) .pricing-cta:not(.pricing-cta--featured) {
+  color: var(--color-purple-on-dark);
+  border-color: var(--color-purple-on-dark);
 }
 
-:root.dark .pricing-cta:hover:not(:disabled),
-:root:not(.light) .pricing-cta:hover:not(:disabled) {
+:root.dark .pricing-cta:not(.pricing-cta--featured):hover:not(:disabled),
+:root:not(.light) .pricing-cta:not(.pricing-cta--featured):hover:not(:disabled) {
   background-color: rgba(183, 148, 244, 0.1);
 }
 
-.pricing-cta--featured {
+.pricing-card--featured .pricing-cta--featured,
+.pricing-cta--featured,
+:root.dark .pricing-cta--featured,
+:root:not(.light) .pricing-cta--featured {
   background-color: var(--color-primary-dark);
   color: white;
   border-color: var(--color-primary-dark);
 }
 
-.pricing-cta--featured:hover:not(:disabled) {
+.pricing-card--featured .pricing-cta--featured:hover:not(:disabled),
+.pricing-cta--featured:hover:not(:disabled),
+:root.dark .pricing-cta--featured:hover:not(:disabled),
+:root:not(.light) .pricing-cta--featured:hover:not(:disabled) {
   background-color: #3d1769;
 }
 
@@ -1335,7 +1405,7 @@ const mobileMenuOpen = ref(false)
   margin: var(--spacing-sm) 0 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pricing-grid {
     grid-template-columns: 1fr;
     max-width: 420px;
@@ -1346,6 +1416,16 @@ const mobileMenuOpen = ref(false)
   }
 }
 
+@media (min-width: 769px) and (max-width: 1023px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 680px;
+  }
+}
+
+/* ========================
+   FAQ
+========================= */
 /* ========================
    FAQ
 ========================= */
