@@ -574,10 +574,6 @@ select {
 
 /* Footer responsive */
 @media (max-width: 640px) {
-  .app-footer .container {
-    box-sizing: border-box;
-    width: 100%;
-  }
   .footer-content {
     gap: var(--spacing-md);
   }

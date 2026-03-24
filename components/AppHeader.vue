@@ -642,15 +642,12 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .hamburger {
+    box-sizing: border-box;
     display: flex;
   }
 
   .desktop-actions {
     display: none;
-  }
-
-  .header-actions {
-    padding-right: var(--spacing-xs);
   }
 }
 </style>
