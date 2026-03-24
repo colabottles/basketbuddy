@@ -222,6 +222,19 @@
                         placeholder="Notes (optional)"
                         @keyup.enter="saveEdit(item.id)"
                         @keyup.esc="cancelEditing" />
+                      <select
+                        v-if="listStore.categories && listStore.categories.length > 0"
+                        v-model="editingCategory"
+                        class="input edit-input"
+                        :aria-label="`Category for ${editingText}`">
+                        <option :value="null">No Category</option>
+                        <option
+                          v-for="category in listStore.categories"
+                          :key="category.id"
+                          :value="category.name">
+                          {{ category.name }}
+                        </option>
+                      </select>
 
                       <!-- Image Upload -->
                       <div class="image-upload-section">
@@ -674,6 +687,7 @@ const newCategoryName = ref('')
 const newCategoryColor = ref('#7c3aed')
 const categoryNameInput = ref<HTMLInputElement | null>(null)
 const isCreatingCategory = ref(false)
+const editingCategory = ref<string | null>(null)
 const categoryToDelete = ref<Category | null>(null)
 const isDeletingCategory = ref(false)
 const selectedCategory = ref<string | null>(null)
@@ -1001,6 +1015,7 @@ const startEditingItem = (item: GroceryItem) => {
   editingItemId.value = item.id
   editingText.value = item.text
   editingNotes.value = item.notes || ''
+  editingCategory.value = item.category  // add this
   editingImage.value = null
   editingImagePreview.value = item.image_url || null
 }
@@ -1042,6 +1057,7 @@ const cancelEditing = () => {
   editingItemId.value = null
   editingText.value = ''
   editingNotes.value = ''
+  editingCategory.value = null  // add this
   editingImage.value = null
   editingImagePreview.value = null
 }
@@ -1055,6 +1071,7 @@ const saveEdit = async (itemId: string) => {
   try {
     await listStore.updateItemText?.(itemId, editingText.value.trim())
     await listStore.updateItemNotes?.(itemId, editingNotes.value.trim() || null)
+    await listStore.updateItemCategory?.(itemId, editingCategory.value)  // add this
 
     if (editingImage.value) {
       await listStore.updateItemImage?.(itemId, editingImage.value)

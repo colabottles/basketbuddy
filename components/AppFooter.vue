@@ -67,6 +67,8 @@
 
   .footer-text {
     padding: 0 var(--spacing-sm);
+    box-sizing: border-box;
+    width: 100%;
   }
 }
 </style>
