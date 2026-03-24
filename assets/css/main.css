@@ -445,11 +445,16 @@ select {
 .app-header {
   background-color: var(--color-primary);
   color: white;
-  padding: var(--spacing-md) 0;
+  padding-top: max(var(--spacing-md), env(safe-area-inset-top));
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: var(--z-header);
+}
+
+.app-header .container {
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .header-content {

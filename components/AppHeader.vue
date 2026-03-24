@@ -648,5 +648,9 @@ onMounted(() => {
   .desktop-actions {
     display: none;
   }
+
+  .header-actions {
+    padding-right: var(--spacing-xs);
+  }
 }
 </style>
