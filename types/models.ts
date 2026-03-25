@@ -4,6 +4,9 @@ export interface GroceryList {
   owner_id: string
   created_at: string
   updated_at: string
+  budget: number | null
+  tax_rate: number | null
+  reset_prices_on_refresh: boolean
 }
 
 export interface GroceryItem {
@@ -15,6 +18,8 @@ export interface GroceryItem {
   category: string | null
   notes: string | null
   image_url: string | null
+  price: number | null
+  quantity: number
   created_at: string
   updated_at: string
 }
@@ -55,6 +60,8 @@ export interface ExportData {
     text: string
     checked: boolean
     category: string | null
+    price: number | null
+    quantity: number
   }[]
   categories: {
     name: string

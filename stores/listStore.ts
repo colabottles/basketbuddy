@@ -137,7 +137,10 @@ export const useListStore = defineStore('lists', () => {
       name,
       owner_id: user.id,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      budget: null,
+      tax_rate: null,
+      reset_prices_on_refresh: false,
     }
 
     // Try IndexedDB but don't let it block list creation
@@ -190,7 +193,9 @@ export const useListStore = defineStore('lists', () => {
       notes: null,
       image_url: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: null,
+      quantity: 1,
     }
 
     await saveListItem(newItem)
@@ -270,7 +275,9 @@ export const useListStore = defineStore('lists', () => {
       notes: item.notes,
       image_url: item.image_url,
       created_at: item.created_at,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: item.price,
+      quantity: item.quantity,
     }
 
     await saveListItem(updatedItem)
@@ -523,7 +530,9 @@ export const useListStore = defineStore('lists', () => {
       notes: item.notes,
       image_url: item.image_url,
       created_at: item.created_at,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: item.price,
+      quantity: item.quantity,
     }
 
     await saveListItem(updatedItem)
@@ -581,7 +590,9 @@ export const useListStore = defineStore('lists', () => {
       notes: item.notes,
       image_url: item.image_url,
       created_at: item.created_at,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: item.price,
+      quantity: item.quantity,
     }
 
     await saveListItem(updatedItem)
@@ -639,7 +650,9 @@ export const useListStore = defineStore('lists', () => {
       notes,
       image_url: item.image_url,
       created_at: item.created_at,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: item.price,
+      quantity: item.quantity,
     }
 
     await saveListItem(updatedItem)
@@ -738,7 +751,9 @@ export const useListStore = defineStore('lists', () => {
       notes: item.notes,
       image_url: imageUrl,
       created_at: item.created_at,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      price: item.price,
+      quantity: item.quantity,
     }
 
     await saveListItem(updatedItem)

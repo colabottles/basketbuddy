@@ -191,7 +191,6 @@
                         </span>
                       </div>
                       <span v-if="item.notes" class="item-notes">{{ item.notes }}</span>
-                      <!-- Image thumbnail in list -->
                       <div v-if="item.image_url" class="item-image-thumbnail">
                         <img
                           :src="item.image_url"
@@ -223,7 +222,6 @@
                         @keyup.enter="saveEdit(item.id)"
                         @keyup.esc="cancelEditing" />
                       <select
-                        v-if="listStore.categories && listStore.categories.length > 0"
                         v-model="editingCategory"
                         class="input edit-input"
                         :aria-label="`Category for ${editingText}`">
@@ -234,7 +232,25 @@
                           :value="category.name">
                           {{ category.name }}
                         </option>
+                        <option value="__new__">+ Create new category...</option>
                       </select>
+
+                      <div v-if="editingCategory === '__new__'" class="inline-new-category">
+                        <input
+                          v-model="inlineNewCategoryName"
+                          type="text"
+                          class="input edit-input"
+                          placeholder="Category name"
+                          @keyup.enter="saveInlineCategory"
+                          @keyup.esc="editingCategory = null" />
+                        <button
+                          type="button"
+                          class="button button-small button-primary"
+                          @click="saveInlineCategory"
+                          :disabled="!inlineNewCategoryName.trim()">
+                          Add
+                        </button>
+                      </div>
 
                       <!-- Image Upload -->
                       <div class="image-upload-section">
@@ -245,7 +261,6 @@
                           @change="handleImageSelect"
                           class="visually-hidden"
                           :id="`image-input-${item.id}`" />
-
                         <div v-if="editingImagePreview" class="image-preview">
                           <img :src="editingImagePreview" :alt="`Preview for ${editingText}`" />
                           <button
@@ -256,7 +271,6 @@
                             ×
                           </button>
                         </div>
-
                         <label
                           v-else
                           :for="`image-input-${item.id}`"
@@ -764,20 +778,19 @@ const loadListShares = async () => {
 const handleShareList = async () => {
   const email = shareEmail.value.trim()
   if (!email || isSharingList.value) return
+  isSharingList.value = true  // set immediately, before validation
 
   if (!email.includes('@')) {
     alert('Please enter a valid email address')
+    isSharingList.value = false
     return
   }
 
-  isSharingList.value = true
   try {
     const newShare = await listStore.shareList?.(listId.value, email, sharePermission.value)
-
     if (newShare) {
       listShares.value.push(newShare)
     }
-
     shareEmail.value = ''
     sharePermission.value = 'edit'
     showNotification(`Invitation sent to ${email}`)
@@ -1015,7 +1028,7 @@ const startEditingItem = (item: GroceryItem) => {
   editingItemId.value = item.id
   editingText.value = item.text
   editingNotes.value = item.notes || ''
-  editingCategory.value = item.category  // add this
+  editingCategory.value = item.category
   editingImage.value = null
   editingImagePreview.value = item.image_url || null
 }
@@ -1053,11 +1066,21 @@ const removeEditingImage = () => {
   }
 }
 
+const inlineNewCategoryName = ref('')
+
+const saveInlineCategory = async () => {
+  const name = inlineNewCategoryName.value.trim()
+  if (!name) return
+  await listStore.createCategory?.(listId.value, name, '#7c3aed')
+  editingCategory.value = name
+  inlineNewCategoryName.value = ''
+}
+
 const cancelEditing = () => {
   editingItemId.value = null
   editingText.value = ''
   editingNotes.value = ''
-  editingCategory.value = null  // add this
+  editingCategory.value = null
   editingImage.value = null
   editingImagePreview.value = null
 }
@@ -1071,7 +1094,7 @@ const saveEdit = async (itemId: string) => {
   try {
     await listStore.updateItemText?.(itemId, editingText.value.trim())
     await listStore.updateItemNotes?.(itemId, editingNotes.value.trim() || null)
-    await listStore.updateItemCategory?.(itemId, editingCategory.value)  // add this
+    await listStore.updateItemCategory?.(itemId, editingCategory.value)
 
     if (editingImage.value) {
       await listStore.updateItemImage?.(itemId, editingImage.value)
@@ -1393,6 +1416,12 @@ useHead({
   padding-right: var(--spacing-sm);
 }
 
+.inline-new-category {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
 .add-item-form {
   display: flex;
   gap: var(--spacing-md);
@@ -1597,12 +1626,15 @@ useHead({
   align-items: center;
   gap: var(--spacing-sm);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .item-text {
   font-size: var(--font-size-base);
   color: var(--color-text);
   word-break: break-word;
+  min-width: 0;
+  flex: 1;
 }
 
 .item-checked .item-text {
