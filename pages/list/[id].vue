@@ -27,8 +27,8 @@
             <button
               @click="showCategoryDialog = true"
               class="button button-small button-secondary"
-              aria-label="Add new category">
-              Add Category
+              aria-label="Manage categories">
+              Manage Categories
             </button>
           </div>
 
@@ -161,7 +161,8 @@
                   :key="item.id"
                   :data-id="item.id"
                   class="item-row"
-                  :class="{ 'item-dragging': draggingItemId === item.id, 'item-editing': editingItemId === item.id }">
+                  :class="{ 'item-dragging': draggingItemId === item.id, 'item-editing': editingItemId === item.id }"
+                  :style="item.category ? { '--item-border-color': getCategoryColor(item.category) } : {}">
                   <button
                     v-if="editingItemId !== item.id"
                     class="drag-handle"
@@ -185,9 +186,9 @@
                         <span class="item-text">{{ item.text }}</span>
                         <span
                           v-if="item.category"
-                          class="item-category-pill"
-                          :style="{ '--pill-color': getCategoryColor(item.category) }">
-                          {{ item.category }}
+                          class="item-category-dot"
+                          :style="{ backgroundColor: getCategoryColor(item.category) }"
+                          :aria-label="`Category: ${item.category}`">
                         </span>
                       </div>
                       <span v-if="item.notes" class="item-notes">{{ item.notes }}</span>
@@ -308,7 +309,16 @@
                       @click="confirmDeleteItem(item)"
                       class="button-icon button-danger"
                       :aria-label="`Delete ${item.text}`">
-                      <span aria-hidden="true">×</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true" focusable="false" width="20"
+                        height="20">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                      </svg>
                     </button>
                   </div>
                 </li>
@@ -322,7 +332,8 @@
                 <li
                   v-for="item in checkedItems"
                   :key="item.id"
-                  class="item-row item-checked">
+                  class="item-row item-checked"
+                  :style="item.category ? { '--item-border-color': getCategoryColor(item.category) } : {}">
                   <div class="item-content">
                     <label class="checkbox-container">
                       <input
@@ -338,9 +349,9 @@
                         <span class="item-text">{{ item.text }}</span>
                         <span
                           v-if="item.category"
-                          class="item-category-pill"
-                          :style="{ '--pill-color': getCategoryColor(item.category) }">
-                          {{ item.category }}
+                          class="item-category-dot"
+                          :style="{ backgroundColor: getCategoryColor(item.category) }"
+                          :aria-label="`Category: ${item.category}`">
                         </span>
                       </div>
                       <span v-if="item.notes" class="item-notes">{{ item.notes }}</span>
@@ -353,7 +364,16 @@
                     @click="confirmDeleteItem(item)"
                     class="button-icon button-danger"
                     :aria-label="`Delete ${item.text}`">
-                    <span aria-hidden="true">×</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true" focusable="false" width="20"
+                      height="20">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
                   </button>
                 </li>
               </ul>
@@ -385,61 +405,162 @@
       role="dialog"
       aria-labelledby="category-title"
       aria-modal="true">
-      <div class="dialog" @click.stop>
-        <h2 id="category-title" class="dialog-title">Add Category</h2>
-        <form @submit.prevent="handleCreateCategory">
-          <div class="form-group">
-            <label for="category-name" class="form-label">
-              Category Name
-              <span aria-hidden="true">*</span>
-            </label>
-            <input
-              id="category-name"
-              ref="categoryNameInput"
-              v-model="newCategoryName"
-              type="text"
-              class="input"
-              required
-              aria-required="true"
-              placeholder="e.g., Produce, Dairy" />
-          </div>
+      <div class="dialog dialog-large" @click.stop>
+        <h2 id="category-title" class="dialog-title">Manage Categories</h2>
 
-          <div class="form-group">
-            <label class="form-label">
-              Color
-            </label>
-            <div class="color-palette">
+        <!-- Quick Add Presets -->
+        <div class="category-section">
+          <h3 class="category-section-title">Quick Add</h3>
+          <div class="preset-bundle-tabs" role="tablist" aria-label="Category bundles">
+            <button
+              v-for="bundle in Object.keys(categoryPresets)"
+              :key="bundle"
+              class="preset-tab"
+              :class="{ 'preset-tab-active': activePresetBundle === bundle }"
+              role="tab"
+              :aria-selected="activePresetBundle === bundle"
+              @click="activePresetBundle = bundle as keyof typeof categoryPresets">
+              {{ bundle }}
+            </button>
+          </div>
+          <div class="preset-chips">
+            <button
+              v-for="preset in categoryPresets[activePresetBundle]"
+              :key="preset.name"
+              class="preset-chip"
+              :class="{ 'preset-chip-added': listStore.categories.some(c => c.name === preset.name) }"
+              :style="{ '--preset-color': preset.color }"
+              :aria-pressed="listStore.categories.some(c => c.name === preset.name)"
+              @click="handleTogglePresetCategory(preset)">
+              <span class="preset-chip-dot" :style="{ backgroundColor: preset.color }"></span>
+              {{ preset.name }}
+              <span v-if="listStore.categories.some(c => c.name === preset.name)"
+                aria-hidden="true">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Existing Categories -->
+        <div class="category-section" v-if="listStore.categories.length > 0">
+          <h3 class="category-section-title">Your Categories</h3>
+          <ul class="existing-categories" role="list">
+            <li
+              v-for="category in listStore.categories"
+              :key="category.id"
+              class="existing-category-item">
+              <span
+                class="existing-category-dot"
+                :style="{ backgroundColor: category.color }">
+              </span>
+              <span class="existing-category-name">{{ category.name }}</span>
               <button
-                v-for="color in colorPalette"
-                :key="color.value"
+                @click="confirmDeleteCategory(category); closeCategoryDialog()"
+                class="existing-category-delete"
+                :aria-label="`Delete ${category.name} category`">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true" focusable="false" width="16"
+                  height="16">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Create Custom -->
+        <div class="category-section">
+          <h3 class="category-section-title">Create Custom</h3>
+          <form @submit.prevent="handleCreateCategory">
+            <div class="form-group">
+              <label for="category-name" class="form-label">
+                Category Name
+                <span aria-hidden="true">*</span>
+              </label>
+              <input
+                id="category-name"
+                ref="categoryNameInput"
+                v-model="newCategoryName"
+                type="text"
+                class="input"
+                required
+                aria-required="true"
+                placeholder="e.g., Produce, Dairy" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Color
+                <span class="form-label-hint">— click a swatch to choose</span>
+              </label>
+              <div class="color-palette">
+                <button
+                  v-for="color in colorPalette"
+                  :key="color.value"
+                  type="button"
+                  @click="newCategoryColor = color.value"
+                  class="color-swatch"
+                  :class="{ 'color-swatch-selected': newCategoryColor === color.value }"
+                  :style="{ backgroundColor: color.value }"
+                  :aria-label="`Select ${color.name} color`"
+                  :aria-pressed="newCategoryColor === color.value">
+                  <span v-if="newCategoryColor === color.value" class="color-check"
+                    aria-hidden="true">✓</span>
+                </button>
+
+                <!-- Custom color picker at the end -->
+                <div class="color-swatch-custom">
+                  <label
+                    for="category-color-custom"
+                    class="color-swatch color-swatch-picker"
+                    :aria-label="`Custom color picker: ${newCategoryColor}`"
+                    tabindex="0"
+                    @keydown.enter.prevent="($el as HTMLElement).click()"
+                    @keydown.space.prevent="($el as HTMLElement).click()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                      stroke="white" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true" focusable="false" width="22"
+                      height="22">
+                      <circle cx="13.5" cy="6.5" r=".5" fill="white" />
+                      <circle cx="17.5" cy="10.5" r=".5" fill="white" />
+                      <circle cx="8.5" cy="7.5" r=".5" fill="white" />
+                      <circle cx="6.5" cy="12.5" r=".5" fill="white" />
+                      <path
+                        d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+                    </svg>
+                    <input
+                      id="category-color-custom"
+                      v-model="newCategoryColor"
+                      type="color"
+                      class="color-picker-input-hidden"
+                      aria-label="Choose a custom color" />
+                  </label>
+                  <span class="visually-hidden">Custom</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dialog-actions">
+              <button
                 type="button"
-                @click="newCategoryColor = color.value"
-                class="color-swatch"
-                :class="{ 'color-swatch-selected': newCategoryColor === color.value }"
-                :style="{ backgroundColor: color.value }"
-                :aria-label="`Select ${color.name} color`"
-                :aria-pressed="newCategoryColor === color.value">
-                <span v-if="newCategoryColor === color.value" class="color-check"
-                  aria-hidden="true">✓</span>
+                @click="closeCategoryDialog"
+                class="button button-secondary">
+                Close
+              </button>
+              <button
+                type="submit"
+                class="button button-primary"
+                :disabled="!newCategoryName.trim() || isCreatingCategory">
+                Create
               </button>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div class="dialog-actions">
-            <button
-              type="button"
-              @click="closeCategoryDialog"
-              class="button button-secondary">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="button button-primary"
-              :disabled="!newCategoryName.trim() || isCreatingCategory">
-              Create
-            </button>
-          </div>
-        </form>
       </div>
     </div>
 
@@ -659,22 +780,65 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const categoryPresets = {
+  Grocery: [
+    { name: 'Produce', color: '#4D7C0F' },
+    { name: 'Meat', color: '#B91C1C' },
+    { name: 'Seafood', color: '#0369A1' },
+    { name: 'Deli', color: '#C2410C' },
+    { name: 'Dairy', color: '#0F766E' },
+    { name: 'Bakery', color: '#B45309' },
+    { name: 'Frozen', color: '#3730A3' },
+    { name: 'Beverages', color: '#0F766E' },
+    { name: 'Snacks', color: '#9F1239' },
+    { name: 'Household', color: '#334155' },
+    { name: 'Personal Care', color: '#6D28D9' },
+    { name: 'Baby', color: '#86198F' },
+  ],
+  Hardware: [
+    { name: 'Lumber', color: '#B45309' },
+    { name: 'Electrical', color: '#B91C1C' },
+    { name: 'Plumbing', color: '#0369A1' },
+    { name: 'Paint', color: '#6D28D9' },
+    { name: 'Tools', color: '#334155' },
+    { name: 'Garden', color: '#4D7C0F' },
+    { name: 'Flooring', color: '#C2410C' },
+    { name: 'Hardware', color: '#1E3A5F' },
+  ],
+  Wholesale: [
+    { name: 'Fresh', color: '#4D7C0F' },
+    { name: 'Frozen', color: '#3730A3' },
+    { name: 'Pantry', color: '#B45309' },
+    { name: 'Household', color: '#334155' },
+    { name: 'Electronics', color: '#1E3A5F' },
+    { name: 'Clothing', color: '#581C87' },
+    { name: 'Pharmacy', color: '#065F46' },
+  ],
+  Pharmacy: [
+    { name: 'Prescriptions', color: '#B91C1C' },
+    { name: 'Health', color: '#065F46' },
+    { name: 'Beauty', color: '#86198F' },
+    { name: 'Household', color: '#334155' },
+    { name: 'Snacks', color: '#9F1239' },
+  ],
+} as const
+
 const colorPalette = [
-  { name: 'Blue', value: '#2563eb', contrast: 'white' },
-  { name: 'Green', value: '#059669', contrast: 'white' },
-  { name: 'Red', value: '#dc2626', contrast: 'white' },
-  { name: 'Orange', value: '#ea580c', contrast: 'white' },
-  { name: 'Pink', value: '#db2777', contrast: 'white' },
-  { name: 'Indigo', value: '#4f46e5', contrast: 'white' },
-  { name: 'Teal', value: '#0d9488', contrast: 'white' },
-  { name: 'Amber', value: '#d97706', contrast: 'white' },
-  { name: 'Lime', value: '#65a30d', contrast: 'white' },
-  { name: 'Cyan', value: '#0891b2', contrast: 'white' },
-  { name: 'Rose', value: '#e11d48', contrast: 'white' },
-  { name: 'Emerald', value: '#10b981', contrast: 'white' },
-  { name: 'Violet', value: '#7c3aed', contrast: 'white' },
-  { name: 'Fuchsia', value: '#c026d3', contrast: 'white' },
-  { name: 'Sky', value: '#0284c7', contrast: 'white' }
+  { name: 'Crimson', value: '#B91C1C' },
+  { name: 'Tangerine', value: '#C2410C' },
+  { name: 'Amber', value: '#B45309' },
+  { name: 'Lime', value: '#4D7C0F' },
+  { name: 'Emerald', value: '#065F46' },
+  { name: 'Teal', value: '#0F766E' },
+  { name: 'Sky', value: '#0369A1' },
+  { name: 'Indigo', value: '#3730A3' },
+  { name: 'Violet', value: '#6D28D9' },
+  { name: 'Fuchsia', value: '#86198F' },
+  { name: 'Rose', value: '#9F1239' },
+  { name: 'Slate', value: '#334155' },
+  { name: 'Forest', value: '#14532D' },
+  { name: 'Navy', value: '#1E3A5F' },
+  { name: 'Plum', value: '#581C87' },
 ]
 
 const route = useRoute()
@@ -724,6 +888,7 @@ const shareEmail = ref('')
 const sharePermission = ref<'view' | 'edit'>('edit')
 const isSharingList = ref(false)
 const isLoggingOut = ref(false)
+const activePresetBundle = ref<keyof typeof categoryPresets>('Grocery')
 
 let sortableInstance: Sortable | null = null
 
@@ -846,6 +1011,17 @@ const setupRealtimeSubscription = () => {
       }
     }
   )
+}
+
+const handleTogglePresetCategory = async (preset: { name: string, color: string }) => {
+  const existing = listStore.categories.find(c => c.name === preset.name)
+  if (existing) {
+    await listStore.deleteCategoryById?.(existing.id)
+    showNotification(`"${preset.name}" removed`)
+  } else {
+    await listStore.createCategory?.(listId.value, preset.name, preset.color)
+    showNotification(`"${preset.name}" added`)
+  }
 }
 
 const setupDragAndDrop = () => {
@@ -1316,6 +1492,150 @@ useHead({
   margin-bottom: var(--spacing-xl);
 }
 
+.category-section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.category-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.category-section-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-md);
+}
+
+.preset-bundle-tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+.preset-tab {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: 2rem;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.preset-tab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.preset-tab-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 2rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.preset-chip:hover:not(:disabled) {
+  border-color: var(--preset-color);
+  color: var(--color-text);
+}
+
+.preset-chip-added {
+  background-color: var(--preset-color);
+  border-color: var(--preset-color);
+  color: white;
+  opacity: 0.8;
+}
+
+.preset-chip-added:hover {
+  opacity: 1;
+}
+
+.preset-chip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.existing-categories {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.existing-category-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--color-surface);
+  border-radius: 0.375rem;
+}
+
+.existing-category-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.existing-category-name {
+  flex: 1;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.existing-category-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--color-danger);
+  transition: background-color 0.2s;
+}
+
+.existing-category-delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -1487,7 +1807,7 @@ useHead({
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
   background-color: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: 2px solid var(--item-border-color, var(--color-border));
   border-radius: 0.5rem;
   transition: background-color 0.2s, box-shadow 0.2s;
 }
@@ -1613,6 +1933,12 @@ useHead({
   box-shadow: var(--focus-ring);
 }
 
+.form-label-hint {
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
 .item-info {
   flex: 1;
   display: flex;
@@ -1627,6 +1953,7 @@ useHead({
   gap: var(--spacing-sm);
   flex-wrap: wrap;
   min-width: 0;
+  flex: 1;
 }
 
 .item-text {
@@ -1641,21 +1968,15 @@ useHead({
   text-decoration: line-through;
 }
 
-.item-category-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  background-color: var(--pill-color);
-  color: white;
-  border-radius: 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  white-space: nowrap;
+.item-category-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  display: inline-block;
 }
 
-.item-checked .item-category-pill {
+.item-checked .item-category-dot {
   opacity: 0.6;
 }
 
@@ -2176,6 +2497,50 @@ useHead({
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+.color-swatch-picker {
+  position: relative;
+  cursor: pointer;
+  min-width: 50px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-swatch-picker {
+  background-color: #0EA5E9
+}
+
+.color-picker-input-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-picker-input {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 2px solid var(--color-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  background: none;
+}
+
+.color-picker-input:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.color-check {
+  color: white;
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 .collab-section {
   margin-bottom: var(--spacing-lg);
 }
@@ -2436,11 +2801,6 @@ useHead({
 
   .item-text {
     font-size: var(--font-size-sm);
-  }
-
-  .item-category-pill {
-    font-size: var(--font-size-xs);
-    padding: 2px 8px;
   }
 
   .item-notes {
