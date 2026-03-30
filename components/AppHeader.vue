@@ -342,10 +342,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.app-header {
-  padding-top: env(safe-area-inset-top, 16px);
-}
-
 .header-content {
   display: flex;
   align-items: center;

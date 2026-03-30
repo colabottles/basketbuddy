@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <a href="#main-content" class="skip-link">Skip to main content</a>
-
     <NuxtPage />
   </div>
 </template>
@@ -42,3 +41,9 @@ onMounted(() => {
   })
 })
 </script>
+
+<style>
+#app {
+  padding-top: env(safe-area-inset-top);
+}
+</style>
