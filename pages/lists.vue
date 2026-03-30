@@ -266,7 +266,16 @@
               <button @click="handleRemoveShare(share.id, share.invited_email)"
                 class="button-icon button-danger"
                 :aria-label="`Remove access for ${share.invited_email}`">
-                <span aria-hidden="true">×</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true" focusable="false" width="20"
+                  height="20">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
               </button>
             </li>
           </ul>
@@ -1051,12 +1060,17 @@ useHead({
   flex-direction: column;
   gap: var(--spacing-xs);
   flex: 1;
+  min-width: 0;
 }
 
 .collab-email {
   font-weight: 500;
   color: var(--color-text);
   font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .collab-permission-label {
@@ -1101,9 +1115,9 @@ useHead({
   background-color: transparent;
   border: none;
   cursor: pointer;
-  font-size: var(--font-size-2xl);
-  line-height: 1;
-  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 0.25rem;
 }
 
