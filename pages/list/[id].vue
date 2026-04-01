@@ -1951,7 +1951,6 @@ useHead({
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  flex-wrap: wrap;
   min-width: 0;
   flex: 1;
 }
@@ -1959,7 +1958,9 @@ useHead({
 .item-text {
   font-size: var(--font-size-base);
   color: var(--color-text);
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   min-width: 0;
   flex: 1;
 }
